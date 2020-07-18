@@ -1,4 +1,4 @@
-import React from "react";
+import * as React from "react";
 import { Store } from "./Store";
 import type { FormVisible } from "./Store";
 import type { FormInstance } from "./Form";

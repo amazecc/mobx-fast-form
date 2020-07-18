@@ -1,10 +1,10 @@
-import React from "react";
+import * as React from "react";
 import { observe } from "mobx";
 import { observer } from "mobx-react";
 import { StoreContext } from "./context";
 import type { FormErrors } from "./Store";
 import type { Lambda, IObjectDidChange } from "mobx";
-import type { PickOptional } from "src/mobx-assist";
+import type { PickOptional } from "../type";
 import { UnifiedUIEvent, ValuePropName } from "./UnifiedUIEvent";
 import { getValueFormUIEvent } from "./utils";
 

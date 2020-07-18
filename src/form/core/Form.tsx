@@ -1,9 +1,9 @@
-import React from "react";
+import * as React from "react";
 import { Store } from "./Store";
 import { StoreContext } from "./context";
 import { observe } from "mobx";
 import { FormContext } from "./FormProvider";
-import type { PickOptional } from "src/mobx-assist";
+import type { PickOptional } from "../type";
 import type { FormVisible, FormErrors, SubmitReturnType } from "./Store";
 import type { Lambda, IObjectDidChange } from "mobx";
 

@@ -1,5 +1,5 @@
 import { observable, runInAction } from "mobx";
-import { ObjectUtil } from "src/utils/basic/ObjectUtil";
+import { pickObject } from "../utils";
 
 export type FormErrors<V> = {
     [k in keyof V]?: string;
@@ -46,12 +46,7 @@ export class Store<V> {
     constructor(values: V, visible?: FormVisible<V>) {
         this.initialValue = { ...values };
         this.values = values;
-        this.setVisible(
-            Object.assign(
-                ObjectUtil.mapObject(values, () => true),
-                visible
-            )
-        );
+        console.log(visible);
     }
 
     setErrors = (errors: FormErrors<V>) => {
@@ -102,7 +97,7 @@ export class Store<V> {
             prev[next] = errorsArray[index];
             return prev;
         }, ({} as unknown) as FormErrors<V>);
-        const cleanErrors = ObjectUtil.pickObject(errors, (key, value) => !!value);
+        const cleanErrors = pickObject(errors, (key, value) => !!value);
         this.setErrors(cleanErrors);
         return { errors: cleanErrors };
     };

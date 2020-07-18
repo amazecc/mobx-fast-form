@@ -1,4 +1,4 @@
-import React from "react";
+import * as React from "react";
 import { observe } from "mobx";
 import { StoreContext } from "./context";
 import type { Lambda } from "mobx";
