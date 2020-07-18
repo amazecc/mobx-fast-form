@@ -8,7 +8,7 @@
         "target": "ESNext",
         "jsx": "react",
         "moduleResolution": "node",
-        "allowSyntheticDefaultImports": false,
+        "allowSyntheticDefaultImports": true,
         "lib": ["ESNext", "dom"],
         "sourceMap": true,
         "allowJs": true,

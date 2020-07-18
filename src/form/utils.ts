@@ -1,3 +1,5 @@
+import * as React from "react";
+
 /**
  * 根据 callback 提取对象中的字段，生成新的对象
  * @param obj 源对象
@@ -10,4 +12,16 @@ export function pickObject<T>(obj: T, callback: (key: keyof T, value: T[keyof T]
         }
         return prev;
     }, ({} as unknown) as T);
+}
+
+/**
+ * 返回组件是否第一次渲染
+ */
+export function useIsFirstRender() {
+    const isFirstRender = React.useRef(true);
+    if (isFirstRender.current) {
+        isFirstRender.current = false;
+        return true;
+    }
+    return isFirstRender.current;
 }

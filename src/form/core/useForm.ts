@@ -2,7 +2,7 @@ import * as React from "react";
 import { Store } from "./Store";
 import type { FormVisible } from "./Store";
 import type { FormInstance } from "./Form";
-import { useIsFirstRender } from "../../../hooks/lifecycle";
+import { useIsFirstRender } from "../utils";
 
 export interface UseFormReturn<V> {
     form: FormInstance<V>;
