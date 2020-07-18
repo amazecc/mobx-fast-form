@@ -1,0 +1,30 @@
+{
+    "compileOnSave": false,
+    "buildOnSave": false,
+    "compilerOptions": {
+        "experimentalDecorators": true,
+        "outDir": "build",
+        "module": "CommonJS",
+        "target": "ESNext",
+        "jsx": "react",
+        "moduleResolution": "node",
+        "allowSyntheticDefaultImports": true,
+        "lib": ["ESNext", "dom"],
+        "sourceMap": true,
+        "allowJs": true,
+        "forceConsistentCasingInFileNames": true,
+        "noImplicitReturns": true,
+        "strict": true,
+        "importHelpers": true,
+        "suppressImplicitAnyIndexErrors": true,
+        "noUnusedLocals": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "baseUrl": ".",
+        "paths": {
+            "src/*": ["src/*"]
+        }
+    },
+    "exclude": ["node_modules", "dist"],
+    "include": ["src", "script", "config"]
+}
