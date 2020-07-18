@@ -3,7 +3,6 @@ import { Store } from "./Store";
 import { StoreContext } from "./context";
 import { observe } from "mobx";
 import { FormContext } from "./FormProvider";
-import type { PickOptional } from "../type";
 import type { FormVisible, FormErrors, SubmitReturnType } from "./Store";
 import type { Lambda, IObjectDidChange } from "mobx";
 
@@ -29,17 +28,16 @@ export interface FormProps<V> {
      * 表单初始值，当 store 传入为一个 Store 实例，则忽略该初始值，因为 Store 实例化时已经提供了初始值
      */
     initialValue?: V;
-    /**
-     * 控制表单字段初始显示隐藏
-     */
-    initialVisible?: FormVisible<V>;
     /** 表单名字，配合 FormProvider 组件使用 */
     name?: string;
     /**
      * initialValue 更改是否使用新值更新 UI
-     * @default true
      */
     enableReinitialize?: boolean;
+    /**
+     * 表单渲染之前的操作
+     */
+    beforeRender?: (actions: FormActions<V>) => void;
     /**
      * 监听表单字段变化
      */
@@ -61,7 +59,7 @@ export interface FormProps<V> {
      * }
      * ```
      */
-    store?: Store<V> | (new (values: V, visible?: FormVisible<V>) => Store<V>);
+    store?: Store<V> | (new (values: V) => Store<V>);
 }
 
 export class Form<V> extends React.PureComponent<FormProps<V>> implements FormInstance<V> {
@@ -69,37 +67,33 @@ export class Form<V> extends React.PureComponent<FormProps<V>> implements FormIn
 
     readonly context!: React.ContextType<typeof FormContext>;
 
-    static defaultProps: PickOptional<FormProps<any>> = {
-        enableReinitialize: true,
-    };
-
-    private readonly store = (() => {
-        const { store: OuterStore, initialValue, initialVisible } = this.props;
-        if ((OuterStore instanceof Function || OuterStore === undefined) && !initialValue) {
-            throw new Error("当 store 没有传入或者传入一个类时，initialValue 为必填");
-        }
-        if (OuterStore) {
-            if (OuterStore instanceof Function) {
-                return new OuterStore(initialValue!, initialVisible);
-            }
-            return OuterStore;
-        }
-        return new Store(initialValue!, initialVisible);
-    })();
-
     private disposer: Lambda | null = null;
 
-    setValues = this.store.setValues;
+    private readonly store: Store<V>;
 
-    setErrors = this.store.setErrors;
+    setValues: FormActions<V>["setValues"];
 
-    setVisible = this.store.setVisible;
+    setErrors: FormActions<V>["setErrors"];
 
-    validateField = this.store.validateField;
+    setVisible: FormActions<V>["setVisible"];
 
-    resetForm = this.store.resetForm;
+    validateField: FormActions<V>["validateField"];
 
-    submitForm = this.store.submit;
+    resetForm: FormActions<V>["resetForm"];
+
+    submitForm: FormActions<V>["submitForm"];
+
+    constructor(props: FormProps<V>) {
+        super(props);
+        this.store = this.createStore();
+        this.setValues = this.store.setValues;
+        this.setErrors = this.store.setErrors;
+        this.setVisible = this.store.setVisible;
+        this.validateField = this.store.validateField;
+        this.resetForm = this.store.resetForm;
+        this.submitForm = this.store.submit;
+        props.beforeRender?.(this.createFormActions());
+    }
 
     componentDidMount() {
         const { name, effect } = this.props;
@@ -116,32 +110,15 @@ export class Form<V> extends React.PureComponent<FormProps<V>> implements FormIn
     }
 
     componentDidUpdate(prevProps: Readonly<FormProps<V>>) {
-        const { enableReinitialize, initialValue, initialVisible } = this.props;
+        const { enableReinitialize, initialValue } = this.props;
         if (enableReinitialize && initialValue !== prevProps.initialValue) {
             this.store.setValues(initialValue!, false);
-        }
-        if (enableReinitialize && prevProps.initialVisible && initialVisible !== prevProps.initialVisible) {
-            this.store.setVisible(prevProps.initialVisible);
         }
     }
 
     componentWillUnmount() {
         this.disposer?.();
     }
-
-    listener = (change: IObjectDidChange) => {
-        if (change.type === "update") {
-            this.props.effect?.(change.name as keyof V, change.object as V, {
-                setValues: this.setValues,
-                setErrors: this.setErrors,
-                setVisible: this.setVisible,
-                resetForm: this.resetForm,
-                submitForm: this.submitForm,
-                validateField: this.validateField,
-            });
-            this.context?.onFormChange?.(this.props.name!, change.name as string);
-        }
-    };
 
     get values(): Readonly<V> {
         return this.store.values;
@@ -153,6 +130,38 @@ export class Form<V> extends React.PureComponent<FormProps<V>> implements FormIn
 
     get visible(): Readonly<FormVisible<V>> {
         return this.store.visible;
+    }
+
+    private listener = (change: IObjectDidChange) => {
+        if (change.type === "update") {
+            this.props.effect?.(change.name as keyof V, change.object as V, this.createFormActions());
+            this.context?.onFormChange?.(this.props.name!, change.name as string);
+        }
+    };
+
+    private createFormActions(): FormActions<V> {
+        return {
+            setValues: this.setValues,
+            setErrors: this.setErrors,
+            setVisible: this.setVisible,
+            resetForm: this.resetForm,
+            submitForm: this.submitForm,
+            validateField: this.validateField,
+        };
+    }
+
+    private createStore() {
+        const { store: OuterStore, initialValue = {} as V } = this.props;
+        if ((OuterStore instanceof Function || OuterStore === undefined) && !this.props.initialValue) {
+            throw new Error("当 store 没有传入或者传入一个类时，initialValue 为必填");
+        }
+        if (OuterStore) {
+            if (OuterStore instanceof Function) {
+                return new OuterStore(initialValue);
+            }
+            return OuterStore;
+        }
+        return new Store(initialValue);
     }
 
     render() {

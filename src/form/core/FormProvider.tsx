@@ -22,7 +22,7 @@ export interface FormProviderProps<F extends Forms> {
 }
 
 export class FormProvider<F extends Forms> extends React.PureComponent<FormProviderProps<F>> {
-    contextState: ContextState;
+    private contextState: ContextState;
 
     constructor(props: FormProviderProps<F>) {
         super(props);

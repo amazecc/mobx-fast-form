@@ -14,6 +14,7 @@ export type FormVisible<V> = {
 };
 
 export interface ValidateReturnType<V> {
+    ok: boolean;
     errors: FormErrors<V>;
 }
 
@@ -43,10 +44,9 @@ export class Store<V> {
     // 表单验证通过回调函数集合
     private readonly validateSuccessMap = new Map<keyof V, (value: any) => void>();
 
-    constructor(values: V, visible?: FormVisible<V>) {
+    constructor(values: V) {
         this.initialValue = { ...values };
         this.values = values;
-        console.log(visible);
     }
 
     setErrors = (errors: FormErrors<V>) => {
@@ -83,7 +83,7 @@ export class Store<V> {
         });
     };
 
-    validate = async (): Promise<Readonly<ValidateReturnType<V>>> => {
+    validate = async (): Promise<ValidateReturnType<V>> => {
         const validators: Array<Promise<string | undefined>> = [];
         const keys: Array<keyof V> = [];
         this.validateMap.forEach((value, key) => {
@@ -94,21 +94,22 @@ export class Store<V> {
         });
         const errorsArray = await Promise.all(validators);
         const errors = keys.reduce((prev, next, index) => {
-            prev[next] = errorsArray[index];
+            if (errorsArray[index]) {
+                prev[next] = errorsArray[index];
+            }
             return prev;
         }, ({} as unknown) as FormErrors<V>);
         const cleanErrors = pickObject(errors, (key, value) => !!value);
         this.setErrors(cleanErrors);
-        return { errors: cleanErrors };
+        return { errors: cleanErrors, ok: Object.keys(cleanErrors).length === 0 };
     };
 
-    submit = async (validate = true): Promise<Readonly<SubmitReturnType<V>>> => {
+    submit = async (validate = true): Promise<SubmitReturnType<V>> => {
         ++this.submitCount;
-        const errors = validate ? await this.validate() : { errors: {} };
+        const errors: ValidateReturnType<V> = validate ? await this.validate() : { errors: {}, ok: true };
         return {
+            ...errors,
             values: this.values,
-            errors: errors.errors,
-            ok: Object.keys(errors.errors).length === 0,
             visible: this.visible,
         };
     };

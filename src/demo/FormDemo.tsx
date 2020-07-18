@@ -37,7 +37,7 @@ export class FormDemo extends React.PureComponent {
             <div style={{ width: 600, margin: "100px auto" }}>
                 <Form effect={this.effect} ref={this.formRef} initialValue={defaultFormState}>
                     <Field name="name" label="姓名" required>
-                        <Input />
+                        {({ value, setValue }) => <Input value={value} onChange={e => setValue(e.target.value)} />}
                     </Field>
                     <Field name="age" label="年龄">
                         <Input />

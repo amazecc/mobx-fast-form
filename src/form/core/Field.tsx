@@ -4,9 +4,6 @@ import { observer } from "mobx-react";
 import { StoreContext } from "./context";
 import type { FormErrors } from "./Store";
 import type { Lambda, IObjectDidChange } from "mobx";
-import type { PickOptional } from "../type";
-import { UnifiedUIEvent, ValuePropName } from "./UnifiedUIEvent";
-import { getValueFormUIEvent } from "./utils";
 
 export interface AnyValue {
     [k: string]: string;
@@ -24,7 +21,7 @@ export interface FieldConfig<V, K extends keyof V> {
     values: V;
     error: string | undefined;
     errors: FormErrors<V>;
-    setValue: (value: V[K] | React.ChangeEvent, validate?: boolean) => void;
+    setValue: (value: V[K], validate?: boolean) => void;
     setValues: <K extends keyof V>(values: Pick<V, K>, validate?: boolean) => void;
 }
 
@@ -45,14 +42,12 @@ export interface FieldProps<V, K extends keyof V> extends FieldTransferProps {
     name: K;
     /** 绑定到的字段名的值改变了，就会重新 render 组件 */
     bindNames?: string[];
-    /** children 接受 value 的字段名称 */
-    valuePropName?: ValuePropName;
     /** 表单验证支持输入函数与正则， 输入正则情况，表单组件 onChange 必须返回 string 类型的值 */
     validate?: Validate<V, K> | ValidateRegExp[];
     /** 表单验证成功回调 */
     validateSuccess?: (value: V[K]) => void;
     /** 表单控件 */
-    children?: React.ReactElement | React.ReactText | boolean | null | ((renderPropsConfig: RenderPropsConfig<V, K>) => React.ReactElement | React.ReactText | boolean | null);
+    children?: React.ReactNode | ((renderPropsConfig: RenderPropsConfig<V, K>) => React.ReactNode);
 }
 
 @observer
@@ -61,23 +56,24 @@ export class Field<V extends AnyValue, K extends keyof V> extends React.PureComp
 
     readonly context!: React.ContextType<typeof StoreContext>;
 
-    static defaultProps: PickOptional<FieldProps<any, any>> = {
-        valuePropName: "value",
-    };
-
     private disposer: Lambda | null = null;
 
-    componentDidMount() {
-        const { validate, name, bindNames: bindName, required, validateSuccess } = this.props;
-        if (!(name in this.context.visible)) {
-            this.context.setVisible({ [name]: true });
+    constructor(props: FieldProps<V, K>, context: React.ContextType<typeof StoreContext>) {
+        super(props, context);
+        // 初始设置显示为 true
+        if (this.context.visible[props.name] === undefined) {
+            this.context.setVisible({ [props.name]: true });
         }
+    }
+
+    componentDidMount() {
+        const { validate, name, bindNames, required, validateSuccess } = this.props;
         this.addValidateMethodToForm();
         if (validateSuccess && (required || validate)) {
             this.context.registerValidateSuccessMethod(name, validateSuccess);
         }
         // 添加 values 变化的监听器，为 bindName 属性服务
-        if (bindName && bindName.length > 0) {
+        if (bindNames && bindNames.length > 0) {
             this.disposer = observe(this.context.values, this.listener);
         }
     }
@@ -150,14 +146,19 @@ export class Field<V extends AnyValue, K extends keyof V> extends React.PureComp
      * @param value 值
      * @param validate 是否对该字段进行表单验证
      */
-    setValue = (value: V[K] | React.ChangeEvent, validate = true) => this.context.setValues({ [this.props.name]: getValueFormUIEvent(value, this.props.valuePropName!) }, validate);
+    setValue = (value: V[K], validate = true) => this.context.setValues({ [this.props.name]: value }, validate);
 
-    setValues = <K extends keyof V>(values: Pick<V, K>, validate = true) => this.context.setValues(values, validate);
+    getFinalValue = (value: any) => (value?.nativeEvent instanceof InputEvent ? value.target.value : value);
 
-    onChildrenChange = (value: any) => this.setValue(value);
+    onChildrenChange = (value: V[K]) => {
+        this.setValue(value);
+        if (React.isValidElement(this.props.children)) {
+            this.props.children.props.onChange?.(value);
+        }
+    };
 
     render() {
-        const { children, valuePropName, name, label, required } = this.props;
+        const { children, name, label, required } = this.props;
         const { values, visible, errors, touched, submitCount } = this.context;
         const renderPropsConfig = {
             name,
@@ -168,17 +169,13 @@ export class Field<V extends AnyValue, K extends keyof V> extends React.PureComp
             error: this.getFieldError(errors[name], touched[name], submitCount),
             errors,
             setValue: this.setValue,
-            setValues: this.setValues,
+            setValues: this.context.setValues,
         };
         if (!visible[name]) {
             return null;
         }
         if (React.isValidElement(children)) {
-            return (
-                <UnifiedUIEvent valuePropName={valuePropName!} value={renderPropsConfig.value} onChange={this.onChildrenChange}>
-                    {children}
-                </UnifiedUIEvent>
-            );
+            return React.cloneElement(children, { value: renderPropsConfig.value, onChange: this.onChildrenChange });
         }
         if (children instanceof Function) {
             return children(renderPropsConfig);
