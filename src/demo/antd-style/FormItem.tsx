@@ -14,8 +14,3 @@ export const FormItem: React.FC<FormItemProps> = React.memo(props => {
         </Form.Item>
     );
 });
-
-FormItem.defaultProps = {
-    wrapperCol: { span: 24 },
-    labelCol: { span: 24 },
-};

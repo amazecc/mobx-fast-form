@@ -10,8 +10,8 @@ export interface FormActions<V> {
     setValues<K extends keyof V>(values: Pick<V, K>, validate?: boolean): void;
     setErrors(errors: FormErrors<V>): void;
     setVisible(values: FormVisible<V>): void;
-    resetForm(values?: V): void;
-    submitForm(validate?: boolean): Promise<Readonly<SubmitReturnType<V>>>;
+    reset(values?: V): void;
+    submit(validate?: boolean): Promise<Readonly<SubmitReturnType<V>>>;
     validateField: (fieldName: keyof V) => Promise<void>;
 }
 
@@ -79,9 +79,9 @@ export class Form<V> extends React.PureComponent<FormProps<V>> implements FormIn
 
     validateField: FormActions<V>["validateField"];
 
-    resetForm: FormActions<V>["resetForm"];
+    reset: FormActions<V>["reset"];
 
-    submitForm: FormActions<V>["submitForm"];
+    submit: FormActions<V>["submit"];
 
     constructor(props: FormProps<V>) {
         super(props);
@@ -90,8 +90,8 @@ export class Form<V> extends React.PureComponent<FormProps<V>> implements FormIn
         this.setErrors = this.store.setErrors;
         this.setVisible = this.store.setVisible;
         this.validateField = this.store.validateField;
-        this.resetForm = this.store.resetForm;
-        this.submitForm = this.store.submit;
+        this.reset = this.store.reset;
+        this.submit = this.store.submit;
         props.beforeRender?.(this.createFormActions());
     }
 
@@ -120,18 +120,6 @@ export class Form<V> extends React.PureComponent<FormProps<V>> implements FormIn
         this.disposer?.();
     }
 
-    get values(): Readonly<V> {
-        return this.store.values;
-    }
-
-    get errors(): Readonly<FormErrors<V>> {
-        return this.store.errors;
-    }
-
-    get visible(): Readonly<FormVisible<V>> {
-        return this.store.visible;
-    }
-
     private listener = (change: IObjectDidChange) => {
         if (change.type === "update") {
             this.props.effect?.(change.name as keyof V, change.object as V, this.createFormActions());
@@ -144,8 +132,8 @@ export class Form<V> extends React.PureComponent<FormProps<V>> implements FormIn
             setValues: this.setValues,
             setErrors: this.setErrors,
             setVisible: this.setVisible,
-            resetForm: this.resetForm,
-            submitForm: this.submitForm,
+            reset: this.reset,
+            submit: this.submit,
             validateField: this.validateField,
         };
     }
@@ -162,6 +150,18 @@ export class Form<V> extends React.PureComponent<FormProps<V>> implements FormIn
             return OuterStore;
         }
         return new Store(initialValue);
+    }
+
+    get values(): Readonly<V> {
+        return this.store.values;
+    }
+
+    get errors(): Readonly<FormErrors<V>> {
+        return this.store.errors;
+    }
+
+    get visible(): Readonly<FormVisible<V>> {
+        return this.store.visible;
     }
 
     render() {

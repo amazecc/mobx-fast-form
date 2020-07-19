@@ -25,7 +25,7 @@ export interface FieldConfig<V, K extends keyof V> {
     setValues: <K extends keyof V>(values: Pick<V, K>, validate?: boolean) => void;
 }
 
-export interface FieldTransferProps {
+export interface FieldDescriptionProps {
     /** 字段描述 */
     label?: React.ReactNode;
     /** 是否做必填校验 */
@@ -35,9 +35,9 @@ export interface FieldTransferProps {
 }
 
 // 传递到 children render props 函数中的参数
-export interface RenderPropsConfig<V = any, K extends keyof V = any> extends FieldConfig<V, K>, FieldTransferProps {}
+export interface RenderPropsConfig<V = any, K extends keyof V = any> extends FieldConfig<V, K>, FieldDescriptionProps {}
 
-export interface FieldProps<V, K extends keyof V> extends FieldTransferProps {
+export interface FieldProps<V, K extends keyof V> extends FieldDescriptionProps {
     /** 表单字段名称 */
     name: K;
     /** 绑定到的字段名的值改变了，就会重新 render 组件 */
@@ -135,10 +135,7 @@ export class Field<V extends AnyValue, K extends keyof V> extends React.PureComp
 
     createValidateWithRegExp(value: V[K], regExp?: ValidateRegExp[]) {
         const notPaseItem = regExp?.find(_ => !_.pattern.test((value as unknown) as string));
-        if (notPaseItem) {
-            return notPaseItem.message;
-        }
-        return undefined;
+        return notPaseItem?.message;
     }
 
     /**
@@ -147,8 +144,6 @@ export class Field<V extends AnyValue, K extends keyof V> extends React.PureComp
      * @param validate 是否对该字段进行表单验证
      */
     setValue = (value: V[K], validate = true) => this.context.setValues({ [this.props.name]: value }, validate);
-
-    getFinalValue = (value: any) => (value?.nativeEvent instanceof InputEvent ? value.target.value : value);
 
     onChildrenChange = (value: V[K]) => {
         this.setValue(value);

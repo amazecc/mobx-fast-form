@@ -51,9 +51,7 @@ export class FormDemo extends React.PureComponent {
                     <Field name="isKid" label="是否为小孩">
                         <Input />
                     </Field>
-                    <div>
-                        <Button onClick={this.submit}>提交</Button>
-                    </div>
+                    <Button onClick={this.submit}>提交</Button>
                 </Form>
             </div>
         );

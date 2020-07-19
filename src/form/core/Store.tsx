@@ -1,27 +1,19 @@
 import { observable, runInAction } from "mobx";
 import { pickObject } from "../utils";
 
-export type FormErrors<V> = {
-    [k in keyof V]?: string;
-};
+export type FormErrors<V> = Partial<Record<keyof V, string>>;
 
-export type FormTouched<V> = {
-    [k in keyof V]?: boolean;
-};
+export type FormTouched<V> = Partial<Record<keyof V, boolean>>;
 
-export type FormVisible<V> = {
-    [k in keyof V]?: boolean;
-};
+export type FormVisible<V> = Partial<Record<keyof V, boolean>>;
 
 export interface ValidateReturnType<V> {
     ok: boolean;
     errors: FormErrors<V>;
 }
 
-export interface SubmitReturnType<V> {
+export interface SubmitReturnType<V> extends ValidateReturnType<V> {
     values: V;
-    errors: FormErrors<V>;
-    ok: boolean;
     visible: FormVisible<V>;
 }
 
@@ -38,10 +30,14 @@ export class Store<V> {
 
     private readonly initialValue: V;
 
-    // 表单验证函数集合
+    /**
+     * 表单验证函数集合
+     */
     private readonly validateMap = new Map<keyof V, (value: any, values: Readonly<V>) => Promise<string | undefined>>();
 
-    // 表单验证通过回调函数集合
+    /**
+     * 表单验证通过回调函数集合
+     */
     private readonly validateSuccessMap = new Map<keyof V, (value: any) => void>();
 
     constructor(values: V) {
@@ -49,10 +45,18 @@ export class Store<V> {
         this.values = values;
     }
 
+    /**
+     * 设置字段错误信息
+     * @param errors 
+     */
     setErrors = (errors: FormErrors<V>) => {
         runInAction(() => Object.keys(errors).forEach(_ => (this.errors[_] = errors[_])));
     };
 
+    /**
+     * 对某个字段进行表单验证
+     * @param fieldName 
+     */
     validateField = async <K extends keyof V>(fieldName: K) => {
         const validator = this.validateMap.get(fieldName);
         if (validator) {
@@ -64,10 +68,19 @@ export class Store<V> {
         }
     };
 
+    /**
+     * 设置某个字段显示隐藏
+     * @param visible 
+     */
     setVisible = (visible: FormVisible<V>) => {
         runInAction(() => Object.keys(visible).forEach(_ => (this.visible[_] = visible[_])));
     };
 
+    /**
+     * 设置表单字段的值
+     * @param values 
+     * @param validate 
+     */
     setValues = <K extends keyof V>(values: Pick<V, K>, validate = true) => {
         runInAction(() => {
             Object.keys(values).forEach(_ => {
@@ -83,6 +96,9 @@ export class Store<V> {
         });
     };
 
+    /**
+     * 对表单所有字段进行表单验证
+     */
     validate = async (): Promise<ValidateReturnType<V>> => {
         const validators: Array<Promise<string | undefined>> = [];
         const keys: Array<keyof V> = [];
@@ -98,12 +114,16 @@ export class Store<V> {
                 prev[next] = errorsArray[index];
             }
             return prev;
-        }, ({} as unknown) as FormErrors<V>);
+        }, {} as FormErrors<V>);
         const cleanErrors = pickObject(errors, (key, value) => !!value);
         this.setErrors(cleanErrors);
         return { errors: cleanErrors, ok: Object.keys(cleanErrors).length === 0 };
     };
 
+    /**
+     * 提交表单操作，会返回验证结果，可根据验证结果进行表单提交操作
+     * @param validate 
+     */
     submit = async (validate = true): Promise<SubmitReturnType<V>> => {
         ++this.submitCount;
         const errors: ValidateReturnType<V> = validate ? await this.validate() : { errors: {}, ok: true };
@@ -114,7 +134,11 @@ export class Store<V> {
         };
     };
 
-    resetForm = (values?: V) => {
+    /**
+     * 使用初始值重置表单，将清空错误信息
+     * @param values 传入新值，将使用新值重置表单
+     */
+    reset = (values?: V) => {
         runInAction(() => {
             if (values) {
                 Object.keys(this.values).forEach(_ => (this.values[_] = values[_]));
@@ -127,6 +151,11 @@ export class Store<V> {
         });
     };
 
+    /**
+     * 注册字段的验证方法
+     * @param fieldName 
+     * @param fn 
+     */
     registerValidateMethod<K extends keyof V>(fieldName: K, fn: (value: V[K], values: Readonly<V>) => Promise<string | undefined>) {
         this.validateMap.set(fieldName, fn);
     }
@@ -139,6 +168,11 @@ export class Store<V> {
         this.validateMap.delete(fieldName);
     }
 
+    /**
+     * 注册字段验证成功的方法
+     * @param fieldName 
+     * @param fn 
+     */
     registerValidateSuccessMethod<K extends keyof V>(fieldName: K, fn: (value: any) => void) {
         this.validateSuccessMap.set(fieldName, fn);
     }

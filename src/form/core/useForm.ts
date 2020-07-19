@@ -27,8 +27,8 @@ export function useForm<V>(values: V | (() => V), effect?: (actions: FormActions
             setErrors: store.current!.setErrors,
             setValues: store.current!.setValues,
             setVisible: store.current!.setVisible,
-            submitForm: store.current!.submit,
-            resetForm: store.current!.resetForm,
+            submit: store.current!.submit,
+            reset: store.current!.reset,
             validateField: store.current!.validateField,
         };
         formInstance.current = {
