@@ -1,4 +1,4 @@
-import { Configuration, DefinePlugin, HotModuleReplacementPlugin, ProgressPlugin } from "webpack";
+import { Configuration, HotModuleReplacementPlugin, ProgressPlugin } from "webpack";
 import TsconfigPathsPlugin from "tsconfig-paths-webpack-plugin";
 import ForkTsCheckerWebpackPlugin from "fork-ts-checker-webpack-plugin";
 import HtmlWebpackPlugin from "html-webpack-plugin";
@@ -101,9 +101,6 @@ const config: Configuration & { devServer: WebpackDevServer.Configuration } = {
             inject: true,
         }),
         new CaseSensitivePathsPlugin(),
-        new DefinePlugin({
-            IS_DEVELOPMENT: JSON.stringify(true),
-        }),
         new HotModuleReplacementPlugin(),
         new ReactRefreshWebpackPlugin(),
     ],

@@ -24,7 +24,7 @@ export class FormDemo extends React.PureComponent {
     private readonly formRef: React.RefObject<Form<any>> = React.createRef();
 
     submit = async () => {
-        const result = await this.formRef.current!.submitForm();
+        const result = await this.formRef.current!.submit();
         console.log(result);
     };
 

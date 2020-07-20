@@ -23,7 +23,7 @@ export class Field<V extends AnyValue, K extends keyof V> extends React.PureComp
                     const { error, label, required } = renderPropsConfig;
                     const element =
                         children instanceof Function
-                            ? (children as Function)(renderPropsConfig)
+                            ? children(renderPropsConfig)
                             : React.isValidElement(children)
                             ? React.cloneElement(children, { value: renderPropsConfig.value, onChange: renderPropsConfig.setValue })
                             : children;

@@ -47,30 +47,15 @@ export class Store<V> {
 
     /**
      * 设置字段错误信息
-     * @param errors 
+     * @param errors
      */
     setErrors = (errors: FormErrors<V>) => {
         runInAction(() => Object.keys(errors).forEach(_ => (this.errors[_] = errors[_])));
     };
 
     /**
-     * 对某个字段进行表单验证
-     * @param fieldName 
-     */
-    validateField = async <K extends keyof V>(fieldName: K) => {
-        const validator = this.validateMap.get(fieldName);
-        if (validator) {
-            const error = await validator(this.values[fieldName], this.values);
-            runInAction(() => (this.errors[fieldName] = error));
-            if (!error) {
-                this.validateSuccessMap.get(fieldName)?.(this.values[fieldName]);
-            }
-        }
-    };
-
-    /**
      * 设置某个字段显示隐藏
-     * @param visible 
+     * @param visible
      */
     setVisible = (visible: FormVisible<V>) => {
         runInAction(() => Object.keys(visible).forEach(_ => (this.visible[_] = visible[_])));
@@ -78,8 +63,8 @@ export class Store<V> {
 
     /**
      * 设置表单字段的值
-     * @param values 
-     * @param validate 
+     * @param values
+     * @param validate
      */
     setValues = <K extends keyof V>(values: Pick<V, K>, validate = true) => {
         runInAction(() => {
@@ -94,6 +79,49 @@ export class Store<V> {
                 }
             });
         });
+    };
+
+    /**
+     * 提交表单操作，会返回验证结果，可根据验证结果进行表单提交操作
+     * @param validate
+     */
+    submit = async (validate = true): Promise<SubmitReturnType<V>> => {
+        ++this.submitCount;
+        const errors: ValidateReturnType<V> = validate ? await this.validate() : { errors: {}, ok: true };
+        return {
+            ...errors,
+            values: this.values,
+            visible: this.visible,
+        };
+    };
+
+    /**
+     * 使用初始值重置表单，将清空错误信息
+     * @param values 传入新值，将使用新值重置表单
+     */
+    reset = <K extends keyof V>(values?: Pick<V, K>) => {
+        runInAction(() => {
+            const finalValue = values ?? { ...this.initialValue };
+            Object.keys(finalValue).forEach(_ => (this.values[_] = finalValue[_]));
+            this.submitCount = 0;
+            this.errors = {};
+            this.touched = {};
+        });
+    };
+
+    /**
+     * 对某个字段进行表单验证
+     * @param fieldName
+     */
+    validateField = async <K extends keyof V>(fieldName: K) => {
+        const validator = this.validateMap.get(fieldName);
+        if (validator) {
+            const error = await validator(this.values[fieldName], this.values);
+            runInAction(() => (this.errors[fieldName] = error));
+            if (!error) {
+                this.validateSuccessMap.get(fieldName)?.(this.values[fieldName]);
+            }
+        }
     };
 
     /**
@@ -121,47 +149,16 @@ export class Store<V> {
     };
 
     /**
-     * 提交表单操作，会返回验证结果，可根据验证结果进行表单提交操作
-     * @param validate 
-     */
-    submit = async (validate = true): Promise<SubmitReturnType<V>> => {
-        ++this.submitCount;
-        const errors: ValidateReturnType<V> = validate ? await this.validate() : { errors: {}, ok: true };
-        return {
-            ...errors,
-            values: this.values,
-            visible: this.visible,
-        };
-    };
-
-    /**
-     * 使用初始值重置表单，将清空错误信息
-     * @param values 传入新值，将使用新值重置表单
-     */
-    reset = (values?: V) => {
-        runInAction(() => {
-            if (values) {
-                Object.keys(this.values).forEach(_ => (this.values[_] = values[_]));
-            } else {
-                Object.keys(this.initialValue).forEach(_ => (this.values[_] = this.initialValue[_]));
-            }
-            this.submitCount = 0;
-            this.errors = {};
-            this.touched = {};
-        });
-    };
-
-    /**
      * 注册字段的验证方法
-     * @param fieldName 
-     * @param fn 
+     * @param fieldName
+     * @param fn
      */
     registerValidateMethod<K extends keyof V>(fieldName: K, fn: (value: V[K], values: Readonly<V>) => Promise<string | undefined>) {
         this.validateMap.set(fieldName, fn);
     }
 
     /**
-     * Field 组件卸载的情况控制显示隐藏时，删除验证函数
+     * 卸载字段的验证方法
      * @param fieldName 字段名
      */
     unregisterValidateMethod<K extends keyof V>(fieldName: K) {
@@ -170,15 +167,15 @@ export class Store<V> {
 
     /**
      * 注册字段验证成功的方法
-     * @param fieldName 
-     * @param fn 
+     * @param fieldName
+     * @param fn
      */
     registerValidateSuccessMethod<K extends keyof V>(fieldName: K, fn: (value: any) => void) {
         this.validateSuccessMap.set(fieldName, fn);
     }
 
     /**
-     * Field 组件卸载的情况控制显示隐藏时，删除验证成功的函数
+     * 卸载字段验证成功的方法
      * @param fieldName 字段名
      */
     unregisterValidateSuccessMethod<K extends keyof V>(fieldName: K) {
