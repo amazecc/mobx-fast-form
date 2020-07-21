@@ -18,4 +18,5 @@ test
 babel.config.js
 tsconfig.json
 yarn.lock
+*.png
 *.todo
