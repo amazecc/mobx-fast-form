@@ -14,7 +14,7 @@ test
 .eslintignore
 .eslintrc.json
 .gitignore
-.prettier
+.prettierrc
 babel.config.json
 tsconfig.json
 yarn.lock
