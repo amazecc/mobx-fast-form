@@ -35,7 +35,6 @@ export class FormMultiple extends React.PureComponent {
 
     submit = async () => {
         const forms = this.formRef.current?.getForms();
-        console.log("-----:: forms：", forms);
         if (forms) {
             const result1 = await forms.form1.submit();
             const result2 = await forms.form2.submit();
@@ -53,6 +52,7 @@ export class FormMultiple extends React.PureComponent {
     render() {
         return (
             <div style={{ width: 600, margin: "100px auto" }}>
+                <h1>多表单</h1>
                 <FormProvider<Forms> ref={this.formRef} onFormChange={this.onFormChange}>
                     <Form name="form1" initialValue={this.defaultFormState}>
                         <Field name="email" label="邮箱" required>
