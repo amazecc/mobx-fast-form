@@ -1,5 +1,6 @@
 import * as React from "react";
 import type { Form } from "./Form";
+import { FormContext } from "./context";
 
 interface Forms {
     /**
@@ -9,13 +10,11 @@ interface Forms {
     [k: string]: any;
 }
 
-interface ContextState {
+export interface ContextState {
     forms: Forms;
     addForm: (formName: string, form: Form<any>) => void;
     onFormChange: (formName: string, fieldName: string) => void;
 }
-
-export const FormContext = React.createContext<ContextState | null>(null);
 
 export interface FormProviderProps<F extends Forms> {
     onFormChange?: (formName: keyof F, fieldName: string, forms: F) => void;

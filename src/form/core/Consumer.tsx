@@ -28,7 +28,7 @@ export class Consumer<V> extends React.PureComponent<ConsumerProps<V>> {
     }
 
     componentWillUnmount() {
-        return this.disposer?.();
+        this.disposer?.();
     }
 
     render() {
