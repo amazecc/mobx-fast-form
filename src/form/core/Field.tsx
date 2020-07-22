@@ -61,8 +61,8 @@ export class Field<V extends AnyValue, K extends keyof V> extends React.PureComp
     constructor(props: FieldProps<V, K>, context: React.ContextType<typeof StoreContext>) {
         super(props, context);
         // 初始设置显示为 true
-        if (this.context.visible[props.name] === undefined) {
-            this.context.setVisible({ [props.name]: true });
+        if (context.visible[props.name] === undefined) {
+            context.setVisible({ [props.name]: true });
         }
     }
 
