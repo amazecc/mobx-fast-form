@@ -6,7 +6,7 @@ import type { FormErrors } from "./Store";
 import type { Lambda, IObjectDidChange } from "mobx";
 
 export interface AnyValue {
-    [k: string]: string;
+    [k: string]: any;
 }
 
 export type Validate<V, K extends keyof V> = (value: V[K], values: Readonly<V>) => (string | undefined) | Promise<string | undefined>;
