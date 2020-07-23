@@ -11,7 +11,7 @@ export const Input = React.forwardRef<AntdInput, InputProps>((props, ref) => {
         (event: React.ChangeEvent<HTMLInputElement>) => {
             props.onChange?.(event.target.value, event);
         },
-        [props.onChange]
+        [props]
     );
 
     return <AntdInput ref={ref} {...props} onChange={onChange} />;

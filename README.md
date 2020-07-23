@@ -45,6 +45,18 @@
         </Field>
         ```
 
+    -   `Field` 默认支持 `required` 校验，无需添加 `validate` 属性配置，以下可配置 `required` 相关信息
+
+        ```ts
+        // 入口文件设置
+        Form.config({
+            // 重新设置 required 错误提示语，但是 requiredText 优先级更高
+            getRequiredErrorMessage(label?: React.ReactChild) {}
+            // 重新设置 required 判断条件
+            isNullValue(value: any) {}
+        })
+        ```
+
     -   表单控件输入时，只会更新当前组件 `UI`，当需要根据其他字段变化而更新当前组件 `UI` 时，可使用 `bindNames` 属性
 
     -   字段校验支持函数以及正则，当使用正则校验时，表单控件必须返回字符串类型的数据

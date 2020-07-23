@@ -2,6 +2,7 @@ import * as React from "react";
 import { observe } from "mobx";
 import { observer } from "mobx-react";
 import { StoreContext } from "./context";
+import { formConfig } from "./config";
 import type { FormErrors } from "./Store";
 import type { Lambda, IObjectDidChange } from "mobx";
 
@@ -27,7 +28,7 @@ export interface FieldConfig<V, K extends keyof V> {
 
 export interface FieldDescriptionProps {
     /** 字段描述 */
-    label?: React.ReactNode;
+    label?: React.ReactChild;
     /** 是否做必填校验 */
     required?: boolean;
     /** 自定义必填提示信息 */
@@ -110,8 +111,6 @@ export class Field<V extends AnyValue, K extends keyof V> extends React.PureComp
         }
     };
 
-    isNullValue = (value: V[K]) => value === null || value === undefined || (typeof value === "string" && value === "");
-
     validateWithRequired = async (value: V[K], values: Readonly<V>) => {
         const errorMessage = await this.validateOnlyWithRequired(value);
         if (errorMessage) {
@@ -122,15 +121,15 @@ export class Field<V extends AnyValue, K extends keyof V> extends React.PureComp
 
     validateOnlyWithRequired = async (value: V[K]) => {
         const { required, requiredText, label } = this.props;
-        if (required && this.isNullValue(value)) {
-            return requiredText ?? `${typeof label === "string" ? label : "该项"}为必填项`;
+        if (required && formConfig.isNullValue(value)) {
+            return requiredText ?? formConfig.getRequiredErrorMessage(label);
         }
         return undefined;
     };
 
     validate = async (value: V[K], values: Readonly<V>) => {
         const { validate } = this.props;
-        return this.isNullValue(value) ? undefined : validate instanceof Function ? await validate?.(value, values) : this.createValidateWithRegExp(value, validate);
+        return formConfig.isNullValue(value) ? undefined : validate instanceof Function ? await validate?.(value, values) : this.createValidateWithRegExp(value, validate);
     };
 
     createValidateWithRegExp(value: V[K], regExp?: ValidateRegExp[]) {
@@ -138,11 +137,6 @@ export class Field<V extends AnyValue, K extends keyof V> extends React.PureComp
         return notPaseItem?.message;
     }
 
-    /**
-     * 接受 ChangeEvent 事件对象或值
-     * @param value 值
-     * @param validate 是否对该字段进行表单验证
-     */
     setValue = (value: V[K], validate = true) => this.context.setValues({ [this.props.name]: value }, validate);
 
     onChildrenChange = (value: V[K]) => {
