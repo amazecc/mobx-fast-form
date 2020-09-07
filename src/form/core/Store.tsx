@@ -1,11 +1,15 @@
 import { observable, runInAction } from "mobx";
 import { pickObject } from "../utils";
 
+export type ValidateStatus = "validating" | "success" | "error";
+
 export type FormErrors<V> = Partial<Record<keyof V, string>>;
 
 export type FormTouched<V> = Partial<Record<keyof V, boolean>>;
 
 export type FormVisible<V> = Partial<Record<keyof V, boolean>>;
+
+export type FormValidateStatus<V> = Partial<Record<keyof V, ValidateStatus>>;
 
 export interface ValidateReturnType<V> {
     ok: boolean;
@@ -25,6 +29,8 @@ export class Store<V> {
     @observable touched: FormTouched<V> = {};
 
     @observable visible: FormVisible<V> = {};
+
+    @observable validateStatus: FormValidateStatus<V> = {};
 
     submitCount = 0;
 
@@ -116,8 +122,14 @@ export class Store<V> {
     validateField = async <K extends keyof V>(fieldName: K) => {
         const validator = this.validateMap.get(fieldName);
         if (validator) {
+            runInAction(() => {
+                this.validateStatus[fieldName] = "validating";
+            });
             const error = await validator(this.values[fieldName], this.values);
-            runInAction(() => (this.errors[fieldName] = error));
+            runInAction(() => {
+                this.errors[fieldName] = error;
+                this.validateStatus[fieldName] = error ? "error" : "success";
+            });
             if (!error) {
                 this.validateSuccessMap.get(fieldName)?.(this.values[fieldName]);
             }

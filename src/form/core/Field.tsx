@@ -3,8 +3,9 @@ import { observe } from "mobx";
 import { observer } from "mobx-react";
 import { StoreContext } from "./context";
 import { formConfig } from "./config";
-import type { FormErrors } from "./Store";
+import type { FormErrors, ValidateStatus } from "./Store";
 import type { Lambda, IObjectDidChange } from "mobx";
+import { asyncDebounce } from "../utils";
 
 export interface AnyValue {
     [k: string]: any;
@@ -22,6 +23,7 @@ export interface FieldConfig<V, K extends keyof V> {
     values: V;
     error: string | undefined;
     errors: FormErrors<V>;
+    validateStatus: ValidateStatus;
     setValue: (value: V[K], validate?: boolean) => void;
     setValues: <K extends keyof V>(values: Pick<V, K>, validate?: boolean) => void;
 }
@@ -45,6 +47,12 @@ export interface FieldProps<V, K extends keyof V> extends FieldDescriptionProps 
     bindNames?: string[];
     /** 表单验证支持输入函数与正则， 输入正则情况，表单组件 onChange 必须返回 string 类型的值 */
     validate?: Validate<V, K> | ValidateRegExp[];
+    /**
+     * 对表单验证函数 validate 的防抖处理，值为防抖等待时间
+     * @default undefined 即不进行防抖处理
+     * @description 单位为毫秒
+     */
+    validateDebounce?: number;
     /** 表单验证成功回调 */
     validateSuccess?: (value: V[K]) => void;
     /** 表单控件 */
@@ -97,17 +105,17 @@ export class Field<V extends AnyValue, K extends keyof V> extends React.PureComp
     };
 
     addValidateMethodToForm = () => {
-        const { validate, name, required } = this.props;
+        const { validate, name, required, validateDebounce } = this.props;
         if (required && validate) {
-            this.context.registerValidateMethod(name, this.validateWithRequired);
+            this.context.registerValidateMethod(name, validateDebounce === undefined ? this.validateWithRequired : asyncDebounce(this.validateWithRequired, validateDebounce));
             return;
         }
         if (required) {
-            this.context.registerValidateMethod(name, this.validateOnlyWithRequired);
+            this.context.registerValidateMethod(name, validateDebounce === undefined ? this.validateOnlyWithRequired : asyncDebounce(this.validateOnlyWithRequired, validateDebounce));
             return;
         }
         if (validate) {
-            this.context.registerValidateMethod(name, this.validate);
+            this.context.registerValidateMethod(name, validateDebounce === undefined ? this.validate : asyncDebounce(this.validate, validateDebounce));
         }
     };
 
@@ -148,7 +156,7 @@ export class Field<V extends AnyValue, K extends keyof V> extends React.PureComp
 
     render() {
         const { children, name, label, required } = this.props;
-        const { values, visible, errors, touched, submitCount } = this.context;
+        const { values, visible, errors, touched, submitCount, validateStatus } = this.context;
         const renderPropsConfig = {
             name,
             label,
@@ -157,6 +165,7 @@ export class Field<V extends AnyValue, K extends keyof V> extends React.PureComp
             values,
             error: this.getFieldError(errors[name], touched[name], submitCount),
             errors,
+            validateStatus: validateStatus[name] as ValidateStatus,
             setValue: this.setValue,
             setValues: this.context.setValues,
         };
