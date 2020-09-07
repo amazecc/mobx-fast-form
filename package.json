@@ -1,6 +1,6 @@
 {
     "name": "mobx-fast-form",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "description": "使用 mobx 实现的轻量级高性能表单组件",
     "main": "lib/index.js",
     "types": "lib/index.d.ts",
