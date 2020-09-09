@@ -137,7 +137,7 @@ export class Field<V extends AnyValue, K extends keyof V> extends React.PureComp
 
     validate = async (value: V[K], values: Readonly<V>) => {
         const { validate } = this.props;
-        return formConfig.isNullValue(value) ? undefined : validate instanceof Function ? await validate?.(value, values) : this.createValidateWithRegExp(value, validate);
+        return validate instanceof Function ? await validate?.(value, values) : this.createValidateWithRegExp(value, validate);
     };
 
     createValidateWithRegExp(value: V[K], regExp?: ValidateRegExp[]) {
