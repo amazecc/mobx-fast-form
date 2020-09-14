@@ -53,6 +53,11 @@ export interface FieldProps<V, K extends keyof V> extends FieldDescriptionProps 
      * @description 单位为毫秒
      */
     validateDebounce?: number;
+    /**
+     * 可选情况下并且 value 为空时，是否执行 validate 函数进行验证
+     * @description 一般用在联合验证的情况，比如：fieldName1, fieldName2, fieldName3, 至少输入一个
+     */
+    validateNullishWithOptional?: boolean;
     /** 表单验证成功回调 */
     validateSuccess?: (value: V[K]) => void;
     /** 表单控件 */
@@ -136,7 +141,10 @@ export class Field<V extends AnyValue, K extends keyof V> extends React.PureComp
     };
 
     validate = async (value: V[K], values: Readonly<V>) => {
-        const { validate } = this.props;
+        const { validate, validateNullishWithOptional, required } = this.props;
+        if (!required && !validateNullishWithOptional && formConfig.isNullValue(value)) {
+            return undefined;
+        }
         return validate instanceof Function ? await validate?.(value, values) : this.createValidateWithRegExp(value, validate);
     };
 
