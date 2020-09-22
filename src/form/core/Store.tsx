@@ -56,7 +56,12 @@ export class Store<V> {
      * @param errors
      */
     setErrors = (errors: FormErrors<V>) => {
-        runInAction(() => Object.keys(errors).forEach(_ => (this.errors[_] = errors[_])));
+        runInAction(() => {
+            Object.keys(errors).forEach(_ => {
+                this.errors[_] = errors[_];
+                this.validateStatus[_] = errors[_] ? "error" : "success";
+            });
+        });
     };
 
     /**
