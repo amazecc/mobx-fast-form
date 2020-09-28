@@ -1,10 +1,11 @@
 import * as React from "react";
-import { Store } from "./Store";
-import { StoreContext, FormContext } from "./context";
+import { Store } from "../Store";
+import { StoreContext } from "./context";
 import { observe } from "mobx";
-import type { FormVisible, FormErrors, SubmitReturnType } from "./Store";
+import type { FormVisible, FormErrors, SubmitReturnType } from "../Store";
 import type { Lambda, IObjectDidChange } from "mobx";
-import { config } from "./config";
+import { config } from "../config";
+import { FormContext } from "../FormProvider/context";
 
 export interface FormActions<V> {
     setValues<K extends keyof V>(values: Pick<V, K>, validate?: boolean): void;
@@ -125,7 +126,7 @@ export class Form<V> extends React.PureComponent<FormProps<V>> implements FormIn
     private listener = (change: IObjectDidChange) => {
         if (change.type === "update") {
             this.props.effect?.(change.name as keyof V, change.object as V, this.createFormActions());
-            this.context?.onFormChange?.(this.props.name!, change.name as string);
+            this.context?.onFormChange?.(this.props.name!, change.name as string, this.context.forms);
         }
     };
 

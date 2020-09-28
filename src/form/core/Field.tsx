@@ -1,7 +1,7 @@
 import * as React from "react";
 import { observe } from "mobx";
 import { observer } from "mobx-react";
-import { StoreContext } from "./context";
+import { StoreContext } from "./Form/context";
 import { formConfig } from "./config";
 import type { FormErrors, ValidateStatus } from "./Store";
 import type { Lambda, IObjectDidChange } from "mobx";
@@ -25,7 +25,7 @@ export interface FieldConfig<V, K extends keyof V> {
     errors: FormErrors<V>;
     validateStatus: ValidateStatus;
     setValue: (value: V[K], validate?: boolean) => void;
-    setValues: <K extends keyof V>(values: Pick<V, K>, validate?: boolean) => void;
+    setValues: <KK extends keyof V>(values: Pick<V, KK>, validate?: boolean) => void;
 }
 
 export interface FieldDescriptionProps {
@@ -135,7 +135,7 @@ export class Field<V extends AnyValue, K extends keyof V> extends React.PureComp
     validateOnlyWithRequired = async (value: V[K]) => {
         const { required, requiredText, label } = this.props;
         if (required && formConfig.isNullValue(value)) {
-            return requiredText ?? formConfig.getRequiredErrorMessage(label);
+            return formConfig.getRequiredErrorMessage(label, requiredText);
         }
         return undefined;
     };

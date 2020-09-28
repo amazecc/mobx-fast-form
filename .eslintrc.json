@@ -33,6 +33,7 @@
         "no-return-assign": 0,
         "default-case": 0,
         "consistent-return": 0,
+        "no-shadow": 0,
         "react/jsx-fragments": 0,
         "react/prop-types": 0,
         "react/jsx-filename-extension": ["error", { "extensions": [".ts", ".tsx"] }],
@@ -64,6 +65,7 @@
                 "args": "after-used",
                 "ignoreRestSiblings": true
             }
-        ]
+        ],
+        "@typescript-eslint/no-shadow": ["error"]
     }
 }

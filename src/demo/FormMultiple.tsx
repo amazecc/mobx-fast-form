@@ -34,7 +34,7 @@ export class FormMultiple extends React.PureComponent {
     };
 
     submit = async () => {
-        const forms = this.formRef.current?.getForms();
+        const forms = this.formRef.current?.forms;
         if (forms) {
             const result1 = await forms.form1.submit();
             const result2 = await forms.form2.submit();

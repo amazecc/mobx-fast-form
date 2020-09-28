@@ -1,6 +1,6 @@
 import * as React from "react";
 import { observe } from "mobx";
-import { StoreContext } from "./context";
+import { StoreContext } from "./Form/context";
 import type { Lambda } from "mobx";
 
 export interface ConsumerProps<V> {

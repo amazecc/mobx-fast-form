@@ -66,18 +66,20 @@ const config: Configuration & { devServer: WebpackDevServer.Configuration } = {
                     {
                         loader: "postcss-loader",
                         options: {
-                            ident: "postcss",
-                            plugins: () => [
-                                // eslint-disable-next-line global-require
-                                require("postcss-flexbugs-fixes"),
-                                // eslint-disable-next-line global-require
-                                require("postcss-preset-env")({
-                                    autoprefixer: {
-                                        flexbox: "no-2009",
-                                    },
-                                    stage: 3,
-                                }),
-                            ],
+                            postcssOptions: {
+                                plugins: [
+                                    "postcss-flexbugs-fixes",
+                                    [
+                                        "postcss-preset-env",
+                                        {
+                                            autoprefixer: {
+                                                flexbox: "no-2009",
+                                            },
+                                            stage: 3,
+                                        },
+                                    ],
+                                ],
+                            },
                         },
                     },
                     {

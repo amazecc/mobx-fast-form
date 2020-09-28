@@ -2,7 +2,10 @@ import * as React from "react";
 
 export const formConfig = {
     /** 获取 required 错误信息 */
-    getRequiredErrorMessage(label?: React.ReactChild): string {
+    getRequiredErrorMessage(label?: React.ReactChild, requiredText?: string): string {
+        if (requiredText !== undefined) {
+            return requiredText;
+        }
         if (React.isValidElement(label) || label === undefined) {
             return `该项为必填项`;
         }
