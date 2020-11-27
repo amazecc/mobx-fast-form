@@ -114,6 +114,7 @@ export class Store<V> {
         runInAction(() => {
             const finalValue = values ?? { ...this.initialValue };
             Object.keys(finalValue).forEach(_ => (this.values[_] = finalValue[_]));
+            Object.keys(this.validateStatus).forEach(_ => (this.validateStatus[_] = undefined));
             this.submitCount = 0;
             this.errors = {};
             this.touched = {};
@@ -157,6 +158,9 @@ export class Store<V> {
         const errors = keys.reduce((prev, next, index) => {
             if (errorsArray[index]) {
                 prev[next] = errorsArray[index];
+                runInAction(() => {
+                    this.validateStatus[next] = "error";
+                });
             }
             return prev;
         }, {} as FormErrors<V>);
