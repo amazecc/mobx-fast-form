@@ -2,10 +2,9 @@ import * as React from "react";
 import { observe } from "mobx";
 import { observer } from "mobx-react";
 import { StoreContext } from "./Form/context";
-import { formConfig } from "./config";
+import { asyncDebounce } from "../utils";
 import type { FormErrors, ValidateStatus } from "./Store";
 import type { Lambda, IObjectDidChange } from "mobx";
-import { asyncDebounce } from "../utils";
 
 export interface AnyValue {
     [k: string]: any;
@@ -28,19 +27,10 @@ export interface FieldConfig<V, K extends keyof V> {
     setValues: <KK extends keyof V>(values: Pick<V, KK>, validate?: boolean) => void;
 }
 
-export interface FieldDescriptionProps {
-    /** 字段描述 */
-    label?: React.ReactChild;
-    /** 是否做必填校验 */
-    required?: boolean;
-    /** 自定义必填提示信息 */
-    requiredText?: string;
-}
-
 // 传递到 children render props 函数中的参数
-export interface RenderPropsConfig<V = any, K extends keyof V = any> extends FieldConfig<V, K>, FieldDescriptionProps {}
+export interface RenderPropsConfig<V = any, K extends keyof V = any> extends FieldConfig<V, K> {}
 
-export interface FieldProps<V, K extends keyof V> extends FieldDescriptionProps {
+export interface FieldProps<V, K extends keyof V> {
     /** 表单字段名称 */
     name: K;
     /** 绑定到的字段名的值改变了，就会重新 render 组件 */
@@ -53,11 +43,6 @@ export interface FieldProps<V, K extends keyof V> extends FieldDescriptionProps 
      * @description 单位为毫秒
      */
     validateDebounce?: number;
-    /**
-     * 可选情况下并且 value 为空时，是否执行 validate 函数进行验证
-     * @description 一般用在联合验证的情况，比如：fieldName1, fieldName2, fieldName3, 至少输入一个
-     */
-    validateNullishWithOptional?: boolean;
     /** 表单验证成功回调 */
     validateSuccess?: (value: V[K]) => void;
     /** 表单控件 */
@@ -81,9 +66,9 @@ export class Field<V extends AnyValue, K extends keyof V> extends React.PureComp
     }
 
     componentDidMount() {
-        const { validate, name, bindNames, required, validateSuccess } = this.props;
+        const { validate, name, bindNames, validateSuccess } = this.props;
         this.addValidateMethodToForm();
-        if (validateSuccess && (required || validate)) {
+        if (validateSuccess && validate) {
             this.context.registerValidateSuccessMethod(name, validateSuccess);
         }
         // 添加 values 变化的监听器，为 bindName 属性服务
@@ -110,47 +95,21 @@ export class Field<V extends AnyValue, K extends keyof V> extends React.PureComp
     };
 
     addValidateMethodToForm = () => {
-        const { validate, name, required, validateDebounce } = this.props;
-        if (required && validate) {
-            this.context.registerValidateMethod(name, validateDebounce === undefined ? this.validateWithRequired : asyncDebounce(this.validateWithRequired, validateDebounce));
-            return;
-        }
-        if (required) {
-            this.context.registerValidateMethod(name, validateDebounce === undefined ? this.validateOnlyWithRequired : asyncDebounce(this.validateOnlyWithRequired, validateDebounce));
-            return;
-        }
+        const { validate, name, validateDebounce } = this.props;
         if (validate) {
             this.context.registerValidateMethod(name, validateDebounce === undefined ? this.validate : asyncDebounce(this.validate, validateDebounce));
         }
     };
 
-    validateWithRequired = async (value: V[K], values: Readonly<V>) => {
-        const errorMessage = await this.validateOnlyWithRequired(value);
-        if (errorMessage) {
-            return errorMessage;
-        }
-        return await this.validate(value, values);
-    };
-
-    validateOnlyWithRequired = async (value: V[K]) => {
-        const { required, requiredText, label } = this.props;
-        if (required && formConfig.isNullValue(value)) {
-            return formConfig.getRequiredErrorMessage(label, requiredText);
-        }
-        return undefined;
-    };
-
     validate = async (value: V[K], values: Readonly<V>) => {
-        const { validate, validateNullishWithOptional, required } = this.props;
-        if (!required && !validateNullishWithOptional && formConfig.isNullValue(value)) {
-            return undefined;
-        }
-        return validate instanceof Function ? await validate?.(value, values) : this.createValidateWithRegExp(value, validate);
+        const { validate } = this.props;
+        return validate instanceof Function ? await validate?.(value, values) : this.validateWithRegExp(value, validate);
     };
 
-    createValidateWithRegExp(value: V[K], regExp?: ValidateRegExp[]) {
-        const notPaseItem = regExp?.find(_ => !_.pattern.test((value as unknown) as string));
-        return notPaseItem?.message;
+    validateWithRegExp(value: V[K], regExp?: ValidateRegExp[]) {
+        if (typeof value !== "string") throw Error("when using regular check, value must be a string");
+        const failItem = regExp?.find(_ => !_.pattern.test(value));
+        return failItem?.message;
     }
 
     setValue = (value: V[K], validate = true) => this.context.setValues({ [this.props.name]: value }, validate);
@@ -163,12 +122,10 @@ export class Field<V extends AnyValue, K extends keyof V> extends React.PureComp
     };
 
     render() {
-        const { children, name, label, required } = this.props;
+        const { children, name } = this.props;
         const { values, visible, errors, touched, submitCount, validateStatus } = this.context;
         const renderPropsConfig = {
             name,
-            label,
-            required,
             value: values[name],
             values,
             error: this.getFieldError(errors[name], touched[name], submitCount),

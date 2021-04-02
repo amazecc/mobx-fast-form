@@ -8,7 +8,7 @@ export interface FormProviderProps<F extends Forms> {
 }
 
 export class FormProvider<F extends Forms> extends React.PureComponent<FormProviderProps<F>> {
-    private contextState;
+    private readonly contextState;
 
     constructor(props: FormProviderProps<F>) {
         super(props);

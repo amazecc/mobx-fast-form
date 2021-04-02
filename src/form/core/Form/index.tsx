@@ -4,7 +4,6 @@ import { StoreContext } from "./context";
 import { observe } from "mobx";
 import type { FormVisible, FormErrors, SubmitReturnType } from "../Store";
 import type { Lambda, IObjectDidChange } from "mobx";
-import { config } from "../config";
 import { FormContext } from "../FormProvider/context";
 
 export interface FormActions<V> {
@@ -64,7 +63,6 @@ export interface FormProps<V> {
 }
 
 export class Form<V> extends React.PureComponent<FormProps<V>> implements FormInstance<V> {
-    static config = config;
 
     static contextType = FormContext;
 
