@@ -27,13 +27,13 @@
     -   满足以下接口的任何组件可以很容易接入表单
 
         ```tsx
-        interface Props {
-            value: any;
-            onChange?: (value: any) => void;
+        interface Props<T> {
+            value: T;
+            onChange?: (value: T) => void;
         }
         // 满足以上接口的任何组件可以通过以下方式接入表单
         <Field name="email" label="邮箱">
-            <Input />
+            <Component />
         </Field>;
         ```
 
@@ -45,7 +45,7 @@
         </Field>
         ```
 
-    -   表单控件输入时，只会更新当前组件 `UI`，当需要根据其他字段变化而更新当前组件 `UI` 时，可使用 `bindNames` 属性
+    -   表单控件输入时，只会更新当前组件 `UI`，当需要根据其他字段变化而更新当前组件 `UI` 时，可使用 `bind` 属性
 
     -   字段校验支持函数以及正则，当使用正则校验时，表单控件必须返回字符串类型的数据
 
@@ -53,7 +53,7 @@
 
 -   [Consumer](./src/form/core/Consumer.tsx)
 
-    -   可以通过绑定表单字段名，字段值变化即重渲染该组件
+    -   可以通过 `bind` 属性，字段值变化即重渲染该组件
 
 #### hooks
 
