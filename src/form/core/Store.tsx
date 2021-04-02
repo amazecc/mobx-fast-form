@@ -1,4 +1,4 @@
-import { observable, runInAction } from "mobx";
+import { makeAutoObservable, runInAction } from "mobx";
 import { pickObject } from "../utils";
 
 export type ValidateStatus = "validating" | "success" | "error";
@@ -22,15 +22,15 @@ export interface SubmitReturnType<V> extends ValidateReturnType<V> {
 }
 
 export class Store<V> {
-    @observable readonly values: V;
+    readonly values: V;
 
-    @observable errors: FormErrors<V> = {};
+    errors: FormErrors<V> = {};
 
-    @observable touched: FormTouched<V> = {};
+    touched: FormTouched<V> = {};
 
-    @observable visible: FormVisible<V> = {};
+    visible: FormVisible<V> = {};
 
-    @observable validateStatus: FormValidateStatus<V> = {};
+    validateStatus: FormValidateStatus<V> = {};
 
     submitCount = 0;
 
@@ -49,6 +49,7 @@ export class Store<V> {
     constructor(values: V) {
         this.initialValue = { ...values };
         this.values = values;
+        makeAutoObservable(this);
     }
 
     /**
@@ -56,11 +57,9 @@ export class Store<V> {
      * @param errors
      */
     setErrors = (errors: FormErrors<V>) => {
-        runInAction(() => {
-            Object.keys(errors).forEach(_ => {
-                this.errors[_] = errors[_];
-                this.validateStatus[_] = errors[_] ? "error" : "success";
-            });
+        Object.keys(errors).forEach(_ => {
+            this.errors[_] = errors[_];
+            this.validateStatus[_] = errors[_] ? "error" : "success";
         });
     };
 
@@ -69,7 +68,7 @@ export class Store<V> {
      * @param visible
      */
     setVisible = (visible: FormVisible<V>) => {
-        runInAction(() => Object.keys(visible).forEach(_ => (this.visible[_] = visible[_])));
+        Object.keys(visible).forEach(_ => (this.visible[_] = visible[_]));
     };
 
     /**
@@ -78,17 +77,15 @@ export class Store<V> {
      * @param validate
      */
     setValues = <K extends keyof V>(values: Pick<V, K>, validate = true) => {
-        runInAction(() => {
-            Object.keys(values).forEach(_ => {
-                const fieldName = _ as K;
-                this.values[fieldName] = values[fieldName];
-                if (!this.touched[fieldName]) {
-                    this.touched[fieldName] = true;
-                }
-                if (validate) {
-                    this.validateField(fieldName);
-                }
-            });
+        Object.keys(values).forEach(_ => {
+            const fieldName = _ as K;
+            this.values[fieldName] = values[fieldName];
+            if (!this.touched[fieldName]) {
+                this.touched[fieldName] = true;
+            }
+            if (validate) {
+                this.validateField(fieldName);
+            }
         });
     };
 
@@ -111,14 +108,12 @@ export class Store<V> {
      * @param values 传入新值，将使用新值重置表单
      */
     reset = <K extends keyof V>(values?: Pick<V, K>) => {
-        runInAction(() => {
-            const finalValue = values ?? { ...this.initialValue };
-            Object.keys(finalValue).forEach(_ => (this.values[_] = finalValue[_]));
-            Object.keys(this.validateStatus).forEach(_ => (this.validateStatus[_] = undefined));
-            this.submitCount = 0;
-            this.errors = {};
-            this.touched = {};
-        });
+        const finalValue = values ?? { ...this.initialValue };
+        Object.keys(finalValue).forEach(_ => (this.values[_] = finalValue[_]));
+        Object.keys(this.validateStatus).forEach(_ => (this.validateStatus[_] = undefined));
+        this.submitCount = 0;
+        this.errors = {};
+        this.touched = {};
     };
 
     /**
@@ -128,9 +123,7 @@ export class Store<V> {
     validateField = async <K extends keyof V>(fieldName: K) => {
         const validator = this.validateMap.get(fieldName);
         if (validator) {
-            runInAction(() => {
-                this.validateStatus[fieldName] = "validating";
-            });
+            this.validateStatus[fieldName] = "validating";
             const error = await validator(this.values[fieldName], this.values);
             runInAction(() => {
                 this.errors[fieldName] = error;
