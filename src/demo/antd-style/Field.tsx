@@ -7,20 +7,22 @@ export interface FieldProps<V, K extends keyof V> extends MobxFieldProps<V, K> {
      * @default true
      */
     noStyle?: boolean;
+    label: string;
+    required?: boolean
 }
 
 export class Field<V extends AnyValue, K extends keyof V> extends React.PureComponent<FieldProps<V, K>> {
     static FormItem = FormItem;
 
     render() {
-        const { noStyle, children, ...restFieldProps } = this.props;
+        const { noStyle, label, required, children, ...restFieldProps } = this.props;
         if (noStyle) {
             return <MobxField {...restFieldProps}>{children}</MobxField>;
         }
         return (
             <MobxField {...restFieldProps}>
                 {renderPropsConfig => {
-                    const { error, label, required } = renderPropsConfig;
+                    const { error } = renderPropsConfig;
                     const element =
                         children instanceof Function
                             ? children(renderPropsConfig)
