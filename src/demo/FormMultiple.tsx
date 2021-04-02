@@ -45,15 +45,11 @@ export class FormMultiple extends React.PureComponent {
         }
     };
 
-    onFormChange = (formName: keyof Forms, fieldName: string, forms: Forms) => {
-        console.log(formName, fieldName, forms);
-    };
-
     render() {
         return (
             <div style={{ width: 600, margin: "100px auto" }}>
                 <h1>多表单</h1>
-                <FormProvider<Forms> ref={this.formRef} onFormChange={this.onFormChange}>
+                <FormProvider<Forms> ref={this.formRef}>
                     <Form name="form1" initialValue={this.defaultFormState}>
                         <Field name="email" label="邮箱" required>
                             <Input />

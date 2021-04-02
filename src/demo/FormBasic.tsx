@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Button } from "antd";
 
-import { Form, FormActions, Consumer } from "src/form";
+import { Form, Consumer } from "src/form";
 import { Field } from "./antd-style/Field";
 import { Input } from "./antd-style/Input";
 
@@ -27,22 +27,18 @@ export class FormBasic extends React.PureComponent {
         }
     };
 
-    effect = (name: keyof FormState, values: FormState, actions: FormActions<FormState>) => {
-        console.log({ name, values, actions });
-    };
-
     render() {
         return (
             <div style={{ width: 600, margin: "100px auto" }}>
                 <h1>基础用法以及 Consumer 组件用法</h1>
-                <Form effect={this.effect} ref={this.formRef} initialValue={this.defaultFormState}>
+                <Form ref={this.formRef} initialValue={this.defaultFormState}>
                     <Field name="email" label="邮箱" required>
                         <Input />
                     </Field>
                     <Field name="password" label="密码" required validate={[{ pattern: /\w{4,}/, message: "密码长度最少4位" }]}>
                         <Input />
                     </Field>
-                    <Consumer<FormState> bindNames={["email", "password"]}>
+                    <Consumer<FormState> bind={v => [v.email, v.password]}>
                         {values => (
                             <div style={{ margin: "20px 0" }}>
                                 <strong>Consumer 组件绑定字段值并重渲染</strong> <br />

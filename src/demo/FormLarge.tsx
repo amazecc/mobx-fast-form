@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Button } from "antd";
 
-import { Form, FormActions, useForm } from "src/form";
+import { Form, useForm } from "src/form";
 import { Field } from "./antd-style/Field";
 import { Input } from "./antd-style/Input";
 
@@ -32,16 +32,12 @@ export const FormLarge = () => {
         }
     }, [form]);
 
-    const effect = React.useCallback((name: keyof FormState, values: FormState, actions: FormActions<FormState>) => {
-        console.log({ name, values, actions });
-    }, []);
-
     return (
         <div style={{ width: 600, margin: "100px auto" }}>
             <h1>使用组件 state 更新</h1>
             <Input value={value} onChange={setValue} />
             <h1>以下使用 mobx-fast-form</h1>
-            <Form effect={effect} store={store}>
+            <Form store={store}>
                 {fields.map(_ => (
                     <Field key={_} name={_} label={_} required>
                         <Input />

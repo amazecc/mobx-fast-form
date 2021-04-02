@@ -4,7 +4,6 @@ import { FormContext } from "./context";
 
 export interface FormProviderProps<F extends Forms> {
     formsManager?: FormsManager<F>;
-    onFormChange?: (formName: keyof F, fieldName: string, forms: F) => void;
 }
 
 export class FormProvider<F extends Forms> extends React.PureComponent<FormProviderProps<F>> {
@@ -12,9 +11,7 @@ export class FormProvider<F extends Forms> extends React.PureComponent<FormProvi
 
     constructor(props: FormProviderProps<F>) {
         super(props);
-        const formManager = this.props.formsManager ?? new FormsManager<F>();
-        formManager.onFormChange = this.props.onFormChange;
-        this.contextState = formManager;
+        this.contextState = this.props.formsManager ?? new FormsManager<F>();
     }
 
     get forms() {

@@ -1,11 +1,10 @@
 import * as React from "react";
-import { observe } from "mobx";
+import { IReactionDisposer, reaction } from "mobx";
 import { StoreContext } from "./Form/context";
-import type { Lambda } from "mobx";
 
 export interface ConsumerProps<V> {
-    /** names 包含的字段值变化后，重新渲染该组件，不填写该项默认所有字段变化都重渲染 */
-    bindNames?: Array<keyof V>;
+    /** bind 返回的值中，存在一个变化，那么即重新渲染该组件，不填写该项默认不会重渲染 */
+    bind?: (values: V) => any[];
     children: (values: Readonly<V>) => React.ReactNode;
 }
 
@@ -14,17 +13,16 @@ export class Consumer<V> extends React.PureComponent<ConsumerProps<V>> {
 
     readonly context!: React.ContextType<typeof StoreContext>;
 
-    private disposer: Lambda | null = null;
+    private disposer: IReactionDisposer | null = null;
 
     componentDidMount() {
-        const { bindNames } = this.props;
-        this.disposer = observe(this.context.values as V, change => {
-            if (change.type === "update") {
-                if (!bindNames || bindNames.includes(change.name as keyof V)) {
-                    this.forceUpdate();
-                }
-            }
-        });
+        const { bind } = this.props;
+        if (bind) {
+            this.disposer = reaction(
+                () => bind(this.context.values as V),
+                () => this.forceUpdate()
+            );
+        }
     }
 
     componentWillUnmount() {

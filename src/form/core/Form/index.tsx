@@ -1,9 +1,8 @@
 import * as React from "react";
 import { Store } from "../Store";
 import { StoreContext } from "./context";
-import { observe } from "mobx";
+import { IReactionDisposer } from "mobx";
 import type { FormVisible, FormErrors, SubmitReturnType } from "../Store";
-import type { Lambda, IObjectDidChange } from "mobx";
 import { FormContext } from "../FormProvider/context";
 
 export interface FormActions<V> {
@@ -39,10 +38,6 @@ export interface FormProps<V> {
      */
     beforeRender?: (actions: FormActions<V>) => void;
     /**
-     * 监听表单字段变化
-     */
-    effect?: (name: keyof V, values: V, actions: FormActions<V>) => void;
-    /**
      * Form 内部的状态从外部传入, 使用 useForm 时，需要将 useForm 返回的 store 赋予该字段
      * @example
      * ```tsx
@@ -63,12 +58,11 @@ export interface FormProps<V> {
 }
 
 export class Form<V> extends React.PureComponent<FormProps<V>> implements FormInstance<V> {
-
     static contextType = FormContext;
 
     readonly context!: React.ContextType<typeof FormContext>;
 
-    private disposer: Lambda | null = null;
+    private disposer: IReactionDisposer | null = null;
 
     private readonly store: Store<V>;
 
@@ -97,10 +91,7 @@ export class Form<V> extends React.PureComponent<FormProps<V>> implements FormIn
     }
 
     componentDidMount() {
-        const { name, effect } = this.props;
-        if (effect || this.context) {
-            this.disposer = observe(this.store.values, this.listener);
-        }
+        const { name } = this.props;
         // 如果使用了 FormProvider，那么将表单实例加入其中
         if (this.context) {
             if (!name) {
@@ -119,14 +110,10 @@ export class Form<V> extends React.PureComponent<FormProps<V>> implements FormIn
 
     componentWillUnmount() {
         this.disposer?.();
-    }
-
-    private listener = (change: IObjectDidChange) => {
-        if (change.type === "update") {
-            this.props.effect?.(change.name as keyof V, change.object as V, this.createFormActions());
-            this.context?.onFormChange?.(this.props.name!, change.name as string, this.context.forms);
+        if (this.context && this.props.name) {
+            this.context.removeForm(this.props.name);
         }
-    };
+    }
 
     private createFormActions(): FormActions<V> {
         return {

@@ -1,10 +1,9 @@
 import * as React from "react";
-import { observe } from "mobx";
+import { IReactionDisposer, reaction } from "mobx";
 import { observer } from "mobx-react";
 import { StoreContext } from "./Form/context";
 import { asyncDebounce } from "../utils";
 import type { FormErrors, ValidateStatus } from "./Store";
-import type { Lambda, IObjectDidChange } from "mobx";
 
 export interface AnyValue {
     [k: string]: any;
@@ -33,8 +32,6 @@ export interface RenderPropsConfig<V = any, K extends keyof V = any> extends Fie
 export interface FieldProps<V, K extends keyof V> {
     /** 表单字段名称 */
     name: K;
-    /** 绑定到的字段名的值改变了，就会重新 render 组件 */
-    bindNames?: string[];
     /** 表单验证支持输入函数与正则， 输入正则情况，表单组件 onChange 必须返回 string 类型的值 */
     validate?: Validate<V, K> | ValidateRegExp[];
     /**
@@ -43,10 +40,12 @@ export interface FieldProps<V, K extends keyof V> {
      * @description 单位为毫秒
      */
     validateDebounce?: number;
-    /** 表单验证成功回调 */
-    validateSuccess?: (value: V[K]) => void;
     /** 表单控件 */
     children?: React.ReactNode | ((renderPropsConfig: RenderPropsConfig<V, K>) => React.ReactNode);
+    /** 表单验证成功回调 */
+    validateSuccess?: (value: V[K]) => void;
+    /** 绑定到的值改变了，就会重新 render 组件 */
+    bind?: (values: V) => any[];
 }
 
 @observer
@@ -55,7 +54,7 @@ export class Field<V extends AnyValue, K extends keyof V> extends React.PureComp
 
     readonly context!: React.ContextType<typeof StoreContext>;
 
-    private disposer: Lambda | null = null;
+    private disposer: IReactionDisposer | null = null;
 
     constructor(props: FieldProps<V, K>, context: React.ContextType<typeof StoreContext>) {
         super(props, context);
@@ -66,14 +65,17 @@ export class Field<V extends AnyValue, K extends keyof V> extends React.PureComp
     }
 
     componentDidMount() {
-        const { validate, name, bindNames, validateSuccess } = this.props;
+        const { validate, name, bind, validateSuccess } = this.props;
         this.addValidateMethodToForm();
         if (validateSuccess && validate) {
             this.context.registerValidateSuccessMethod(name, validateSuccess);
         }
-        // 添加 values 变化的监听器，为 bindName 属性服务
-        if (bindNames && bindNames.length > 0) {
-            this.disposer = observe(this.context.values, this.listener);
+        // 添加 values 变化的监听器，为 bind 属性服务
+        if (bind) {
+            this.disposer = reaction(
+                () => bind(this.context.values),
+                () => this.forceUpdate()
+            );
         }
     }
 
@@ -82,13 +84,6 @@ export class Field<V extends AnyValue, K extends keyof V> extends React.PureComp
         this.context.unregisterValidateSuccessMethod(this.props.name);
         this.disposer?.();
     }
-
-    listener = (change: IObjectDidChange) => {
-        const { bindNames: bindName, name } = this.props;
-        if (bindName?.includes(change.name as string) && change.name !== name) {
-            this.forceUpdate();
-        }
-    };
 
     getFieldError = (error: string | undefined, touched: boolean | undefined, submitCount: number) => {
         return (touched && error) || (submitCount > 0 && error) ? error : undefined;

@@ -8,7 +8,7 @@ export interface FieldProps<V, K extends keyof V> extends MobxFieldProps<V, K> {
      */
     noStyle?: boolean;
     label: string;
-    required?: boolean
+    required?: boolean;
 }
 
 export class Field<V extends AnyValue, K extends keyof V> extends React.PureComponent<FieldProps<V, K>> {
