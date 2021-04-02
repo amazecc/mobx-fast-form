@@ -1,13 +1,11 @@
 import type { Form } from "../Form";
 
-export interface Forms {
-    [k: string]: any;
-}
+export type Forms = Record<string, any>;
 
 export class FormsManager<F extends Forms> {
     forms = {} as F;
 
-    addForm = (formName: any, form: Form<any>) => {
+    addForm = (formName: string, form: Form<any>) => {
         Object.assign(this.forms, { [formName]: form });
     };
 
