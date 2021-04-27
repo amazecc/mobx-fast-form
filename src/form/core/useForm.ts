@@ -1,7 +1,6 @@
 import * as React from "react";
 import { Store } from "./Store";
 import type { FormInstance, FormActions } from "./Form";
-import { useIsFirstRender } from "../utils";
 
 export interface UseFormReturn<V> {
     form: FormInstance<V>;
@@ -17,31 +16,25 @@ export interface UseFormReturn<V> {
  * @param effect 表单初始化后可以做一些操作
  */
 export function useForm<V>(values: V | (() => V), effect?: (actions: FormActions<V>) => void): UseFormReturn<V> {
-    const store = React.useRef<Store<V>>();
-    const formInstance = React.useRef<FormInstance<V>>();
-    const isFirstRender = useIsFirstRender();
-    if (isFirstRender) {
+    return React.useMemo(() => {
         const finalValues = values instanceof Function ? values() : values;
-        store.current = new Store(finalValues);
+        const store = new Store(finalValues);
         const formActions = {
-            setErrors: store.current!.setErrors,
-            setValues: store.current!.setValues,
-            setVisible: store.current!.setVisible,
-            submit: store.current!.submit,
-            reset: store.current!.reset,
-            validateField: store.current!.validateField,
+            setErrors: store.setErrors,
+            setValues: store.setValues,
+            setVisible: store.setVisible,
+            submit: store.submit,
+            reset: store.reset,
+            validateField: store.validateField,
         };
-        formInstance.current = {
-            values: store.current!.values,
-            errors: store.current!.errors,
-            visible: store.current!.visible,
+        const form = {
+            values: store.values,
+            errors: store.errors,
+            visible: store.visible,
             ...formActions,
         };
         effect?.(formActions);
-    }
-
-    return {
-        store: store.current!,
-        form: formInstance.current!,
-    };
+        return { store, form };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 }
