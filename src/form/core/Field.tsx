@@ -56,16 +56,11 @@ export class Field<V extends AnyValue, K extends keyof V> extends React.PureComp
 
     private disposer: IReactionDisposer | null = null;
 
-    constructor(props: FieldProps<V, K>, context: React.ContextType<typeof StoreContext>) {
-        super(props, context);
-        // 初始设置显示为 true
-        if (context.visible[props.name] === undefined) {
-            context.setVisible({ [props.name]: true });
-        }
-    }
-
     componentDidMount() {
         const { validate, name, bind, validateSuccess } = this.props;
+        if (this.context.visible[name] === undefined) {
+            this.context.setVisible({ [name]: true });
+        }
         this.addValidateMethodToForm();
         if (validateSuccess && validate) {
             this.context.registerValidateSuccessMethod(name, validateSuccess);
