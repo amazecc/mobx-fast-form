@@ -1,6 +1,6 @@
 {
     "name": "mobx-fast-form",
-    "version": "2.0.1",
+    "version": "2.1.0",
     "description": "使用 mobx 实现的轻量级高性能表单组件",
     "author": "Alex Cao",
     "license": "MIT",
