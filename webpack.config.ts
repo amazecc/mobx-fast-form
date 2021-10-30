@@ -2,8 +2,6 @@ import path from "path";
 import webpack from "webpack";
 import HtmlWebpackPlugin from "html-webpack-plugin";
 
-console.log(">>>>>>", path.resolve(__dirname, "src/demo/test.tsx"));
-
 const config: webpack.Configuration = {
     mode: "development",
     devtool: "inline-source-map",

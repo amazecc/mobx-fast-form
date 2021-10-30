@@ -21,7 +21,7 @@ export interface FieldConfig<V, K extends keyof V> {
     values: V;
     error: string | undefined;
     errors: FormErrors<V>;
-    validateStatus: ValidateStatus;
+    validateStatus: ValidateStatus | undefined;
     setValue: (value: V[K], validate?: boolean) => void;
     setValues: <KK extends keyof V>(values: Pick<V, KK>, validate?: boolean) => void;
 }
@@ -32,6 +32,13 @@ export interface RenderPropsConfig<V = any, K extends keyof V = any> extends Fie
 export interface FieldProps<V, K extends keyof V> {
     /** 表单字段名称 */
     name: K;
+    /** 是否必填 */
+    required?: boolean;
+    /**
+     * 必填不通过的提示文字
+     * @default 请输入内容
+     */
+    requiredMessage?: string;
     /** 表单验证支持输入函数与正则， 输入正则情况，表单组件 onChange 必须返回 string 类型的值 */
     validate?: Validate<V, K> | ValidateRegExp[];
     /**
@@ -40,6 +47,11 @@ export interface FieldProps<V, K extends keyof V> {
      * @description 单位为毫秒
      */
     validateDebounce?: number;
+    /**
+     * 可选情况下并且 value 为空时，是否执行 validate 函数进行校验
+     * @description 一般用在联合校验的情况，比如：fieldName1, fieldName2, fieldName3, 至少输入一个
+     */
+    validateNullishWithOptional?: boolean;
     /** 表单控件 */
     children?: React.ReactNode | ((renderPropsConfig: RenderPropsConfig<V, K>) => React.ReactNode);
     /** 表单验证成功回调 */
@@ -51,6 +63,10 @@ export interface FieldProps<V, K extends keyof V> {
 @observer
 export class Field<V extends AnyValue, K extends keyof V> extends React.PureComponent<FieldProps<V, K>> {
     static override contextType = StoreContext;
+
+    static defaultProps: PickOptional<FieldProps<any, any>> = {
+        requiredMessage: "请输入内容",
+    };
 
     declare readonly context: React.ContextType<typeof StoreContext>;
 
@@ -80,27 +96,32 @@ export class Field<V extends AnyValue, K extends keyof V> extends React.PureComp
         this.disposer?.();
     }
 
+    isNullValue = (value: V[K]) => value === null || value === undefined || (typeof value === "string" && value === "");
+
     getFieldError = (error: string | undefined, touched: boolean | undefined, submitCount: number) => {
         return (touched && error) || (submitCount > 0 && error) ? error : undefined;
     };
 
     addValidateMethodToForm = () => {
-        const { validate, name, validateDebounce } = this.props;
-        if (validate) {
+        const { required, validate, name, validateDebounce } = this.props;
+        if (required || validate) {
             this.context.registerValidateMethod(name, validateDebounce === undefined ? this.validate : asyncDebounce(this.validate, validateDebounce));
         }
     };
 
     validate = async (value: V[K], values: Readonly<V>) => {
-        const { validate } = this.props;
-        return validate instanceof Function ? await validate?.(value, values) : this.validateWithRegExp(value, validate);
+        const { validate, required, requiredMessage, validateNullishWithOptional } = this.props;
+        // 如果不是必填，并且值为空，直接校验通过
+        if (!required && this.isNullValue(value) && !validateNullishWithOptional) {
+            return undefined;
+        }
+        // 如果必填且值为空，进行必填的校验
+        if (required && this.isNullValue(value)) {
+            return requiredMessage;
+        }
+        // 对外部传入 validate 进行校验
+        return validate instanceof Function ? await validate?.(value, values) : validate?.find(_ => !_.pattern.test(value))?.message;
     };
-
-    validateWithRegExp(value: V[K], regExp?: ValidateRegExp[]) {
-        if (typeof value !== "string") throw Error("when using regular check, value must be a string");
-        const failItem = regExp?.find(_ => !_.pattern.test(value));
-        return failItem?.message;
-    }
 
     setValue = (value: V[K], validate = true) => this.context.setValues({ [this.props.name]: value }, validate);
 
@@ -120,7 +141,7 @@ export class Field<V extends AnyValue, K extends keyof V> extends React.PureComp
             values,
             error: this.getFieldError(errors[name], touched[name], submitCount),
             errors,
-            validateStatus: validateStatus[name] as ValidateStatus,
+            validateStatus: validateStatus[name],
             setValue: this.setValue,
             setValues: this.context.setValues,
         };

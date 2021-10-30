@@ -1,5 +1,4 @@
 import { makeAutoObservable, runInAction } from "mobx";
-import { pickObject } from "../utils";
 
 export type ValidateStatus = "validating" | "success" | "error";
 
@@ -157,7 +156,7 @@ export class Store<V> {
             }
             return prev;
         }, {} as FormErrors<V>);
-        const cleanErrors = pickObject(errors, (_key, value) => !!value);
+        const cleanErrors = Object.fromEntries(Object.entries(errors).filter(item => !!item[1])) as Partial<Record<keyof V, string>>;
         this.setErrors(cleanErrors);
         return { errors: cleanErrors, ok: Object.keys(cleanErrors).length === 0 };
     };

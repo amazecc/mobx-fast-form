@@ -32,7 +32,7 @@ export class FormBasic extends React.PureComponent {
             <div style={{ width: 600, margin: "100px auto" }}>
                 <h1>基础用法以及 Consumer 组件用法</h1>
                 <Form ref={this.formRef} initialValue={this.defaultFormState}>
-                    <Field name="email" label="邮箱" required>
+                    <Field<FormState, "email"> name="email" label="邮箱" required>
                         <Input />
                     </Field>
                     <Field name="password" label="密码" required validate={[{ pattern: /\w{4,}/, message: "密码长度最少4位" }]}>
