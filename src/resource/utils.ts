@@ -9,9 +9,10 @@ export function pickObject<T>(obj: T, callback: (key: keyof T, value: T[keyof T]
             prev[next] = obj[next];
         }
         return prev;
-    }, ({} as unknown) as T);
+    }, {} as unknown as T);
 }
 
+/** 异步防抖 */
 export const asyncDebounce = <F extends (...args: any[]) => Promise<any>>(fn: F, wait?: number) => {
     let timerId: number | undefined;
     async function f(...args: Parameters<F>) {

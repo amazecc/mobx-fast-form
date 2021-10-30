@@ -1,7 +1,7 @@
-import * as React from "react";
+import React from "react";
 import { Button } from "antd";
 
-import { Form, useForm } from "src/form";
+import { Form, useForm } from "../resource";
 import { Field } from "./antd-style/Field";
 import { Input } from "./antd-style/Input";
 

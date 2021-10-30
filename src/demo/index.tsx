@@ -1,7 +1,6 @@
-import * as React from "react";
 import { render } from "react-dom";
 import { configure } from "mobx";
-import { Route, BrowserRouter, Link, Switch } from "react-router-dom";
+import { BrowserRouter, Link, Route, Switch } from "react-router-dom";
 import "antd/dist/antd.css";
 
 import { FormBasic } from "./FormBasic";

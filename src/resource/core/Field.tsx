@@ -1,4 +1,4 @@
-import * as React from "react";
+import React from "react";
 import { IReactionDisposer, reaction } from "mobx";
 import { observer } from "mobx-react";
 import { StoreContext } from "./Form/context";
@@ -50,13 +50,13 @@ export interface FieldProps<V, K extends keyof V> {
 
 @observer
 export class Field<V extends AnyValue, K extends keyof V> extends React.PureComponent<FieldProps<V, K>> {
-    static contextType = StoreContext;
+    static override contextType = StoreContext;
 
-    readonly context!: React.ContextType<typeof StoreContext>;
+    declare readonly context: React.ContextType<typeof StoreContext>;
 
     private disposer: IReactionDisposer | null = null;
 
-    componentDidMount() {
+    override componentDidMount() {
         const { validate, name, bind, validateSuccess } = this.props;
         if (this.context.visible[name] === undefined) {
             this.context.setVisible({ [name]: true });
@@ -74,7 +74,7 @@ export class Field<V extends AnyValue, K extends keyof V> extends React.PureComp
         }
     }
 
-    componentWillUnmount() {
+    override componentWillUnmount() {
         this.context.unregisterValidateMethod(this.props.name);
         this.context.unregisterValidateSuccessMethod(this.props.name);
         this.disposer?.();
@@ -111,7 +111,7 @@ export class Field<V extends AnyValue, K extends keyof V> extends React.PureComp
         }
     };
 
-    render() {
+    override render() {
         const { children, name } = this.props;
         const { values, visible, errors, touched, submitCount, validateStatus } = this.context;
         const renderPropsConfig = {

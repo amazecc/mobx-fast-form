@@ -1,4 +1,4 @@
-import * as React from "react";
+import React from "react";
 import { FormsManager, Forms } from "./FormsManager";
 import { FormContext } from "./context";
 
@@ -18,7 +18,7 @@ export class FormProvider<F extends Forms> extends React.PureComponent<FormProvi
         return this.contextState.forms;
     }
 
-    render() {
+    override render() {
         return <FormContext.Provider value={this.contextState}>{this.props.children}</FormContext.Provider>;
     }
 }

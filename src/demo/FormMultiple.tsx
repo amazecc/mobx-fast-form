@@ -1,6 +1,6 @@
-import * as React from "react";
+import React from "react";
 
-import { Form, FormProvider } from "src/form";
+import { Form, FormProvider } from "../resource";
 import { Field } from "./antd-style/Field";
 import { Input } from "./antd-style/Input";
 import { Button } from "antd";
@@ -45,7 +45,7 @@ export class FormMultiple extends React.PureComponent {
         }
     };
 
-    render() {
+    override render() {
         return (
             <div style={{ width: 600, margin: "100px auto" }}>
                 <h1>多表单</h1>

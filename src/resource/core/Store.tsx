@@ -143,7 +143,7 @@ export class Store<V> {
         const keys: Array<keyof V> = [];
         this.validateMap.forEach((value, key) => {
             if (this.visible[key]) {
-                validators.push(this.validateMap.get(key)!(this.values[key], this.values));
+                validators.push(value(this.values[key], this.values));
                 keys.push(key);
             }
         });
@@ -157,7 +157,7 @@ export class Store<V> {
             }
             return prev;
         }, {} as FormErrors<V>);
-        const cleanErrors = pickObject(errors, (key, value) => !!value);
+        const cleanErrors = pickObject(errors, (_key, value) => !!value);
         this.setErrors(cleanErrors);
         return { errors: cleanErrors, ok: Object.keys(cleanErrors).length === 0 };
     };

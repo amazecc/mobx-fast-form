@@ -3,17 +3,18 @@
         "browser": true,
         "es6": true
     },
-    "extends": ["airbnb", "airbnb/hooks", "plugin:@typescript-eslint/eslint-recommended", "prettier", "prettier/@typescript-eslint", "prettier/react"],
+    "extends": ["airbnb", "airbnb/hooks", "plugin:@typescript-eslint/eslint-recommended", "prettier"],
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
         "ecmaFeatures": {
             "jsx": true
         },
-        "ecmaVersion": 2018,
+        "ecmaVersion": "latest",
         "sourceType": "module"
     },
     "plugins": ["@typescript-eslint"],
     "rules": {
+        "camelcase": "off",
         "no-console": 0,
         "no-plusplus": 0,
         "prefer-destructuring": 0,
@@ -34,21 +35,29 @@
         "default-case": 0,
         "consistent-return": 0,
         "no-shadow": 0,
+        "arrow-body-style": 0,
         "react/jsx-fragments": 0,
         "react/prop-types": 0,
         "react/jsx-filename-extension": ["error", { "extensions": [".ts", ".tsx"] }],
+        "jsx-a11y/no-autofocus": 0,
         "react/static-property-placement": 0,
         "react/destructuring-assignment": 0,
         "react/sort-comp": [
-            1,
+            0,
             {
-                "order": ["static-variables", "static-methods", "instance-variables", "lifecycle", "everything-else", "render"]
+                "order": ["instance-variables", "getters", "setters", "instance-methods", "lifecycle", "render", "static-variables", "static-methods"]
             }
         ],
         "react/jsx-props-no-spreading": 0,
         "react/no-did-update-set-state": 0,
         "react/jsx-key": [2, { "checkFragmentShorthand": true }],
         "react/no-access-state-in-setstate": 0,
+        "react/react-in-jsx-scope": 0,
+        "react/no-array-index-key": 0,
+        "react/self-closing-comp": 0,
+        "react/no-deprecated": 0,
+        "react/no-unescaped-entities": 0,
+        "react/button-has-type": 0,
         "import/prefer-default-export": 0,
         "import/no-unresolved": 0,
         "import/extensions": 0,
@@ -58,6 +67,7 @@
         "jsx-a11y/interactive-supports-focus": 0,
         "jsx-a11y/no-static-element-interactions": 0,
         "jsx-a11y/anchor-is-valid": 0,
+        "jsx-a11y/label-has-associated-control": 0,
         "@typescript-eslint/no-unused-vars": [
             "error",
             {

@@ -1,4 +1,4 @@
-import * as React from "react";
+import React from "react";
 import { IReactionDisposer, reaction } from "mobx";
 import { StoreContext } from "./Form/context";
 
@@ -9,13 +9,13 @@ export interface ConsumerProps<V> {
 }
 
 export class Consumer<V> extends React.PureComponent<ConsumerProps<V>> {
-    static contextType = StoreContext;
+    static override contextType = StoreContext;
 
-    readonly context!: React.ContextType<typeof StoreContext>;
+    declare readonly context: React.ContextType<typeof StoreContext>;
 
     private disposer: IReactionDisposer | null = null;
 
-    componentDidMount() {
+    override componentDidMount() {
         const { bind } = this.props;
         if (bind) {
             this.disposer = reaction(
@@ -25,11 +25,11 @@ export class Consumer<V> extends React.PureComponent<ConsumerProps<V>> {
         }
     }
 
-    componentWillUnmount() {
+    override componentWillUnmount() {
         this.disposer?.();
     }
 
-    render() {
+    override render() {
         return this.props.children(this.context.values);
     }
 }

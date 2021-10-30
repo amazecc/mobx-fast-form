@@ -1,4 +1,4 @@
-import * as React from "react";
+import React from "react";
 import { Store } from "../Store";
 import { StoreContext } from "./context";
 import { IReactionDisposer } from "mobx";
@@ -58,9 +58,9 @@ export interface FormProps<V> {
 }
 
 export class Form<V> extends React.PureComponent<FormProps<V>> implements FormInstance<V> {
-    static contextType = FormContext;
+    static override contextType = FormContext;
 
-    readonly context!: React.ContextType<typeof FormContext>;
+    declare readonly context: React.ContextType<typeof FormContext>;
 
     private disposer: IReactionDisposer | null = null;
 
@@ -78,6 +78,18 @@ export class Form<V> extends React.PureComponent<FormProps<V>> implements FormIn
 
     submit: FormActions<V>["submit"];
 
+    get values(): Readonly<V> {
+        return this.store.values;
+    }
+
+    get errors(): Readonly<FormErrors<V>> {
+        return this.store.errors;
+    }
+
+    get visible(): Readonly<FormVisible<V>> {
+        return this.store.visible;
+    }
+
     constructor(props: FormProps<V>) {
         super(props);
         this.store = this.createStore();
@@ -90,7 +102,7 @@ export class Form<V> extends React.PureComponent<FormProps<V>> implements FormIn
         props.beforeRender?.(this.createFormActions());
     }
 
-    componentDidMount() {
+    override componentDidMount() {
         const { name } = this.props;
         // 如果使用了 FormProvider，那么将表单实例加入其中
         if (this.context) {
@@ -101,14 +113,14 @@ export class Form<V> extends React.PureComponent<FormProps<V>> implements FormIn
         }
     }
 
-    componentDidUpdate(prevProps: Readonly<FormProps<V>>) {
+    override componentDidUpdate(prevProps: Readonly<FormProps<V>>) {
         const { enableReinitialize, initialValue } = this.props;
         if (enableReinitialize && initialValue !== prevProps.initialValue) {
             this.store.setValues(initialValue!, false);
         }
     }
 
-    componentWillUnmount() {
+    override componentWillUnmount() {
         this.disposer?.();
         if (this.context && this.props.name) {
             this.context.removeForm(this.props.name);
@@ -140,19 +152,7 @@ export class Form<V> extends React.PureComponent<FormProps<V>> implements FormIn
         return new Store(initialValue);
     }
 
-    get values(): Readonly<V> {
-        return this.store.values;
-    }
-
-    get errors(): Readonly<FormErrors<V>> {
-        return this.store.errors;
-    }
-
-    get visible(): Readonly<FormVisible<V>> {
-        return this.store.visible;
-    }
-
-    render() {
+    override render() {
         return <StoreContext.Provider value={this.store}>{this.props.children}</StoreContext.Provider>;
     }
 }

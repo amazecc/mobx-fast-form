@@ -1,4 +1,4 @@
-import * as React from "react";
+import React from "react";
 import { Form } from "antd";
 import type { FormItemProps as AntdFormItemProps } from "antd/lib/form";
 

@@ -1,5 +1,5 @@
-import * as React from "react";
-import { Field as MobxField, FieldProps as MobxFieldProps, AnyValue } from "src/form/core/Field";
+import React from "react";
+import { Field as MobxField, FieldProps as MobxFieldProps, AnyValue } from "../../resource/core/Field";
 import { FormItem } from "./FormItem";
 
 export interface FieldProps<V, K extends keyof V> extends MobxFieldProps<V, K> {
@@ -14,8 +14,8 @@ export interface FieldProps<V, K extends keyof V> extends MobxFieldProps<V, K> {
 export class Field<V extends AnyValue, K extends keyof V> extends React.PureComponent<FieldProps<V, K>> {
     static FormItem = FormItem;
 
-    render() {
-        const { noStyle, label, required, children, ...restFieldProps } = this.props;
+    override render() {
+        const { noStyle, label, required, children, validate, ...restFieldProps } = this.props;
         if (noStyle) {
             return <MobxField {...restFieldProps}>{children}</MobxField>;
         }

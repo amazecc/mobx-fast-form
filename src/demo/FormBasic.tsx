@@ -1,7 +1,7 @@
-import * as React from "react";
+import React from "react";
 import { Button } from "antd";
 
-import { Form, Consumer } from "src/form";
+import { Form, Consumer } from "../resource";
 import { Field } from "./antd-style/Field";
 import { Input } from "./antd-style/Input";
 
@@ -27,7 +27,7 @@ export class FormBasic extends React.PureComponent {
         }
     };
 
-    render() {
+    override render() {
         return (
             <div style={{ width: 600, margin: "100px auto" }}>
                 <h1>基础用法以及 Consumer 组件用法</h1>

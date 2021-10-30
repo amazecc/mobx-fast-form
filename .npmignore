@@ -8,15 +8,14 @@ yarn-debug.log*
 yarn-error.log*
 
 config
+demo
 public
 script
-test
-.eslintignore
-.eslintrc.json
-.gitignore
 .prettierrc
-babel.config.js
+test
 tsconfig.json
+.eslintrc
+.eslintignore
 yarn.lock
-*.png
+.babelrc
 *.todo
